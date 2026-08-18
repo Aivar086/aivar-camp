@@ -1,28 +1,34 @@
-const CACHE_NAME = 'camp-fish-pro-v2';
-const STATIC_ASSETS = [
-  '/',
-  '/static/css/style.css',
-  '/static/js/app.js',
-  '/guide',
-  '/gear-presets',
-  '/history'
-];
+const CACHE_NAME = 'aivar-camp-v3-fresh';
 
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', (event) => {
+  // Для запросов авторизации и страниц — всегда свежий запрос в сеть
+  if (event.request.mode === 'navigate' || event.request.url.includes('/auth') || event.request.url.includes('/login')) {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Для статики — сеть с фолбэком в кеш
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request).catch(() => {
-        // Fallback если офлайн
-        return caches.match('/');
-      });
-    })
+    fetch(event.request).catch(() => caches.match(event.request))
   );
 });

@@ -1,25 +1,46 @@
 <!DOCTYPE html>
-<html lang="ru" class="h-full bg-slate-950">
+<html lang="ru" style="height: 100%; background-color: #020617;">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Вход в Aivar Camp — Приватный доступ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="icon" type="image/png" href="/static/img/logo.png">
     <link rel="apple-touch-icon" href="/static/img/logo.png">
+    <style>
+        body {
+            margin: 0;
+            padding: 16px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #020617;
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            box-sizing: border-box;
+        }
+        .card-box {
+            background-color: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 24px;
+            padding: 24px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            box-sizing: border-box;
+        }
+    </style>
 </head>
-<body class="h-full flex items-center justify-center p-4 font-sans text-slate-200">
+<body>
 
-    <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-emerald-950/40 space-y-6 relative overflow-hidden">
+    <div class="card-box space-y-6 relative overflow-hidden text-center">
         
-        <!-- Фоновое свечение -->
-        <div class="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
         <!-- Логотип и заголовок -->
-        <div class="text-center space-y-3">
+        <div class="space-y-3">
             <div class="inline-block relative">
-                <img src="/static/img/logo.png" alt="Aivar Camp" class="w-20 h-20 mx-auto rounded-full shadow-xl border-2 border-emerald-500/40 object-cover bg-white">
+                <img src="/static/img/logo.png" alt="Aivar Camp" class="w-20 h-20 mx-auto rounded-full shadow-xl border-2 border-emerald-500/40 object-cover bg-white" style="width: 80px; height: 80px; border-radius: 50%;">
                 <span class="absolute -bottom-1 -right-1 w-6 h-6 bg-slate-900 border border-emerald-500/40 rounded-full flex items-center justify-center text-xs text-emerald-400">
                     <i class="fa-solid fa-lock"></i>
                 </span>
@@ -27,28 +48,28 @@
             
             <div>
                 <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">Aivar Camp Pro</h1>
-                <p class="text-xs text-slate-400 mt-1">Приватный экспедиционный сервис для кемпинга и рыбалки</p>
+                <p class="text-xs text-slate-400 mt-1">Приватный экспедиционный клуб</p>
             </div>
         </div>
 
         <!-- Сообщение о блокировке -->
-        <div class="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800 text-xs text-slate-300 flex items-start gap-2.5">
+        <div class="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800 text-xs text-slate-300 text-left flex items-start gap-2.5">
             <i class="fa-solid fa-shield-halved text-emerald-400 text-base mt-0.5"></i>
             <div>
                 <p class="font-bold text-white">Закрытый доступ</p>
-                <p class="text-slate-400 mt-0.5">Содержимое сайта доступно только капитану и приглашенным друзьям по коду доступа.</p>
+                <p class="text-slate-400 mt-0.5">Сайт доступен только капитану и приглашенным друзьям по коду.</p>
             </div>
         </div>
 
         {% if error %}
-        <div class="p-3 bg-rose-950/50 border border-rose-800/60 rounded-xl text-xs text-rose-300 flex items-center gap-2">
+        <div class="p-3 bg-rose-950/60 border border-rose-800/80 rounded-xl text-xs text-rose-300 flex items-center gap-2 text-left">
             <i class="fa-solid fa-circle-exclamation text-rose-400"></i>
             <span>Неверный код доступа. Попробуйте еще раз.</span>
         </div>
         {% endif %}
 
         <!-- Форма ввода PIN -->
-        <form action="/auth/login" method="POST" class="space-y-4">
+        <form action="/auth/login" method="POST" class="space-y-4 text-left">
             <input type="hidden" name="redirect_url" value="{{ redirect_url }}">
             
             <div>
@@ -62,12 +83,14 @@
                     autofocus 
                     placeholder="••••" 
                     class="w-full bg-slate-950 border border-slate-700 focus:border-emerald-500 rounded-2xl p-3 text-center text-xl tracking-[0.3em] font-mono text-white outline-none transition focus:ring-2 focus:ring-emerald-500/20"
+                    style="width: 100%; box-sizing: border-box;"
                 >
             </div>
 
             <button 
                 type="submit" 
-                class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 font-extrabold py-3.5 rounded-2xl text-xs sm:text-sm transition shadow-lg shadow-emerald-900/40 active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+                class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 font-extrabold py-3.5 rounded-2xl text-sm transition shadow-lg shadow-emerald-900/40 active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+                style="width: 100%; cursor: pointer;"
             >
                 <i class="fa-solid fa-arrow-right-to-bracket"></i>
                 <span>Открыть доступ</span>
@@ -80,5 +103,15 @@
 
     </div>
 
+    <!-- Автоматический сброс старого кэша Service Worker на мобильных устройствах -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for (let registration of registrations) {
+                    registration.update();
+                }
+            });
+        }
+    </script>
 </body>
 </html>
