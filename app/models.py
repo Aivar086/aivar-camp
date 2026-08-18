@@ -132,3 +132,22 @@ class UserInventoryItem(Base):
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
+class Recipe(Base):
+    __tablename__ = "recipes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    slug = Column(String(100), unique=True, index=True, nullable=True)
+    title = Column(String(200), nullable=False)
+    category = Column(String(50), nullable=False, default="kazan") # kazan, afghan_kazan, mangal, skovoroda, fish, soup, tea_dessert
+    category_title = Column(String(100), nullable=False, default="Блюда в казане")
+    icon = Column(String(20), default="🍲")
+    time = Column(String(50), default="1 час")
+    difficulty = Column(String(50), default="Легко") # Легко, Средне, Сложно, Очень легко
+    description = Column(Text, nullable=True)
+    servings_base = Column(Integer, default=4)
+    ingredients_json = Column(Text, nullable=False) # JSON-строка со списком ингредиентов на 1 чел.
+    steps_json = Column(Text, nullable=False)       # JSON-строка со списком шагов
+    is_custom = Column(Boolean, default=False)      # Создан пользователем
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+

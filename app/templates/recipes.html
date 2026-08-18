@@ -1,34 +1,88 @@
 {% extends "base.html" %}
 
-{% block title %}Походная кухня и рецепты для казана — Aivar Camp{% endblock %}
+{% block title %}Походная кухня и рецепты для костра — Aivar Camp{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
 
-    <!-- Шапка -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+    <!-- Шапка страницы -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
         <div>
             <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
-                <span class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg">
+                <span class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-xl shadow-lg border border-amber-500/30">
                     <i class="fa-solid fa-utensils"></i>
                 </span>
-                Походная кухня и рецепты в казане
+                Походная кухня & Рецепты для костра
             </h1>
-            <p class="text-xs sm:text-sm text-slate-400 mt-1">Проверенные блюда для костра с авто-расчетом граммовок и добавлением в раскладку поездки</p>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1">
+                Казан, афганский казан, мангал, садж и уха. Авторасчет продуктов на компанию и добавление в поездку в 1 клик!
+            </p>
         </div>
 
-        {% if selected_trip %}
-        <a href="/trips/{{ selected_trip.id }}#food-section" class="self-start sm:self-auto text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3.5 py-2 rounded-xl border border-slate-700 transition flex items-center gap-2">
-            <i class="fa-solid fa-arrow-left text-emerald-400"></i>
-            <span>Назад к выезду: <b>{{ selected_trip.title }}</b></span>
-        </a>
-        {% endif %}
+        <div class="flex flex-wrap items-center gap-2.5">
+            {% if selected_trip %}
+            <a href="/trips/{{ selected_trip.id }}#food-section" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3.5 py-2 rounded-xl border border-slate-700 transition flex items-center gap-2">
+                <i class="fa-solid fa-arrow-left text-emerald-400"></i>
+                <span>Назад к: <b>{{ selected_trip.title }}</b></span>
+            </a>
+            {% endif %}
+
+            {% if is_captain %}
+            <button onclick="openAddRecipeModal()" class="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 text-xs sm:text-sm font-extrabold px-4 py-2.5 rounded-xl shadow-lg shadow-amber-950/40 transition active:scale-95 flex items-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-plus text-sm"></i>
+                <span>Добавить свой рецепт</span>
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Фильтры категорий и Поиск -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-slate-900/80 p-3 rounded-2xl border border-slate-800">
+        
+        <!-- Категории (табы) -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs no-scrollbar">
+            <a href="/recipes?category=all{% if selected_trip %}&trip_id={{ selected_trip.id }}{% endif %}" class="px-3 py-1.5 rounded-xl whitespace-nowrap font-semibold transition {% if current_category == 'all' %}bg-amber-500 text-slate-950 shadow-md{% else %}bg-slate-950 text-slate-400 hover:text-white border border-slate-800{% endif %}">
+                Все ({{ recipes|length }})
+            </a>
+            <a href="/recipes?category=kazan{% if selected_trip %}&trip_id={{ selected_trip.id }}{% endif %}" class="px-3 py-1.5 rounded-xl whitespace-nowrap font-semibold transition {% if current_category == 'kazan' %}bg-amber-500 text-slate-950 shadow-md{% else %}bg-slate-950 text-slate-400 hover:text-white border border-slate-800{% endif %}">
+                🍲 Казан
+            </a>
+            <a href="/recipes?category=afghan_kazan{% if selected_trip %}&trip_id={{ selected_trip.id }}{% endif %}" class="px-3 py-1.5 rounded-xl whitespace-nowrap font-semibold transition {% if current_category == 'afghan_kazan' %}bg-amber-500 text-slate-950 shadow-md{% else %}bg-slate-950 text-slate-400 hover:text-white border border-slate-800{% endif %}">
+                ⚡ Афганский казан
+            </a>
+            <a href="/recipes?category=mangal{% if selected_trip %}&trip_id={{ selected_trip.id }}{% endif %}" class="px-3 py-1.5 rounded-xl whitespace-nowrap font-semibold transition {% if current_category == 'mangal' %}bg-amber-500 text-slate-950 shadow-md{% else %}bg-slate-950 text-slate-400 hover:text-white border border-slate-800{% endif %}">
+                🍢 Мангал & Гриль
+            </a>
+            <a href="/recipes?category=skovoroda{% if selected_trip %}&trip_id={{ selected_trip.id }}{% endif %}" class="px-3 py-1.5 rounded-xl whitespace-nowrap font-semibold transition {% if current_category == 'skovoroda' %}bg-amber-500 text-slate-950 shadow-md{% else %}bg-slate-950 text-slate-400 hover:text-white border border-slate-800{% endif %}">
+                🍳 Садж & Сковорода
+            </a>
+            <a href="/recipes?category=fish{% if selected_trip %}&trip_id={{ selected_trip.id }}{% endif %}" class="px-3 py-1.5 rounded-xl whitespace-nowrap font-semibold transition {% if current_category == 'fish' %}bg-amber-500 text-slate-950 shadow-md{% else %}bg-slate-950 text-slate-400 hover:text-white border border-slate-800{% endif %}">
+                🐟 Рыба & Уха
+            </a>
+            <a href="/recipes?category=tea_dessert{% if selected_trip %}&trip_id={{ selected_trip.id }}{% endif %}" class="px-3 py-1.5 rounded-xl whitespace-nowrap font-semibold transition {% if current_category == 'tea_dessert' %}bg-amber-500 text-slate-950 shadow-md{% else %}bg-slate-950 text-slate-400 hover:text-white border border-slate-800{% endif %}">
+                ☕ Чай & Напитки
+            </a>
+        </div>
+
+        <!-- Поиск -->
+        <form action="/recipes" method="GET" class="flex items-center gap-1.5 shrink-0">
+            <input type="hidden" name="category" value="{{ current_category }}">
+            {% if selected_trip %}<input type="hidden" name="trip_id" value="{{ selected_trip.id }}">{% endif %}
+            <div class="relative w-full sm:w-48">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-500"></i>
+                <input type="text" name="search" value="{{ search_query }}" placeholder="Поиск блюда..." class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white outline-none focus:border-amber-500">
+            </div>
+            <button type="submit" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-xl text-xs border border-slate-700 transition">
+                Найти
+            </button>
+        </form>
     </div>
 
     <!-- Сетка карточек рецептов -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {% for r in recipes %}
-        <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-5 flex flex-col justify-between relative overflow-hidden">
+        <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-5 flex flex-col justify-between relative overflow-hidden transition hover:border-slate-700">
+            
             <div class="space-y-4">
                 
                 <!-- Заголовок карточки -->
@@ -36,31 +90,49 @@
                     <div class="flex items-center gap-3">
                         <span class="text-3xl">{{ r.icon }}</span>
                         <div>
-                            <h2 class="text-lg font-bold text-white leading-tight">{{ r.title }}</h2>
-                            <div class="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
+                            <div class="flex items-center gap-2">
+                                <h2 class="text-base sm:text-lg font-bold text-white leading-tight">{{ r.title }}</h2>
+                                {% if r.is_custom %}
+                                <span class="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-400 text-[10px] font-bold border border-amber-500/30 shrink-0">
+                                    👑 Ваш рецепт
+                                </span>
+                                {% endif %}
+                            </div>
+                            <div class="flex items-center gap-2 mt-1 text-xs text-slate-400">
                                 <span><i class="fa-solid fa-clock text-amber-400 mr-1"></i>{{ r.time }}</span>
                                 <span>•</span>
                                 <span><i class="fa-solid fa-fire text-rose-400 mr-1"></i>{{ r.difficulty }}</span>
                             </div>
                         </div>
                     </div>
-                    <span class="text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-slate-950 text-slate-400 border border-slate-800">
-                        {{ r.category_title }}
-                    </span>
+
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <span class="text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-slate-950 text-slate-400 border border-slate-800">
+                            {{ r.category_title }}
+                        </span>
+                        {% if r.is_custom and is_captain %}
+                        <form action="/recipes/{{ r.id }}/delete" method="POST" onsubmit="return confirm('Удалить этот рецепт?');">
+                            <button type="submit" class="text-slate-500 hover:text-rose-400 p-1 transition" title="Удалить мой рецепт">
+                                <i class="fa-solid fa-trash-can text-xs"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
                 </div>
 
-                <p class="text-xs text-slate-300">{{ r.description }}</p>
+                <p class="text-xs text-slate-300 leading-relaxed">{{ r.description }}</p>
 
-                <!-- Ингредиенты (на 1 человека база) -->
-                <div class="bg-slate-950/80 rounded-2xl p-4 border border-slate-800 space-y-2">
-                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                        Ингредиенты (на 1 человека):
+                <!-- Ингредиенты (база на 1 чел.) -->
+                <div class="bg-slate-950/80 rounded-2xl p-4 border border-slate-800/90 space-y-2">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block flex items-center justify-between">
+                        <span>Ингредиенты (на 1 чел.):</span>
+                        <span class="text-slate-500 font-normal">для расчета в список продуктов</span>
                     </span>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs">
                         {% for ing in r.ingredients_per_person %}
                         <div class="flex items-center justify-between py-0.5 text-slate-300 border-b border-slate-900/80">
-                            <span>• {{ ing.name }}</span>
-                            <span class="font-mono text-amber-400 font-semibold">{{ ing.amount_num }} {{ ing.unit }}</span>
+                            <span class="truncate pr-2">• {{ ing.name }}</span>
+                            <span class="font-mono text-amber-400 font-semibold shrink-0">{{ ing.amount_num }} {{ ing.unit }}</span>
                         </div>
                         {% endfor %}
                     </div>
@@ -68,19 +140,19 @@
 
                 <!-- Пошаговое приготовление -->
                 <div class="space-y-2 text-xs">
-                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                        Секреты приготовления:
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        Пошаговый процесс приготовления:
                     </span>
                     <div class="space-y-1.5 text-slate-300">
                         {% for step in r.steps %}
-                        <p class="leading-relaxed">{{ step }}</p>
+                        <p class="leading-relaxed bg-slate-950/40 p-2 rounded-xl border border-slate-800/50">{{ step }}</p>
                         {% endfor %}
                     </div>
                 </div>
 
             </div>
 
-            <!-- Форма добавления в поездку -->
+            <!-- Добавление в список продуктов выезда -->
             {% if active_trips and active_trips|length > 0 %}
             <form action="/trips/{% if selected_trip %}{{ selected_trip.id }}{% else %}{{ active_trips[0].id }}{% endif %}/recipes/import" method="POST" class="pt-4 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs" onsubmit="return handleRecipeSubmit(this, '{{ r.id }}')">
                 <input type="hidden" name="recipe_id" value="{{ r.id }}">
@@ -102,14 +174,14 @@
                 </div>
 
                 <div class="sm:col-span-4 flex items-end">
-                    <button type="submit" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-bold p-2 rounded-xl transition flex items-center justify-center gap-1.5 shadow active:scale-95 cursor-pointer">
+                    <button type="submit" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-extrabold p-2 rounded-xl transition flex items-center justify-center gap-1.5 shadow active:scale-95 cursor-pointer">
                         <i class="fa-solid fa-cart-plus"></i> В список продуктов
                     </button>
                 </div>
             </form>
             {% else %}
             <div class="pt-3 border-t border-slate-800 text-center text-xs text-slate-500">
-                <span>Создайте активную поездку, чтобы добавить ингредиенты в список покупок</span>
+                <span>Создайте поездку, чтобы добавить ингредиенты в продуктовую раскладку</span>
             </div>
             {% endif %}
 
@@ -119,6 +191,81 @@
 
 </div>
 
+<!-- Модальное окно «Добавить свой рецепт» (для капитана) -->
+{% if is_captain %}
+<div id="add-recipe-modal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-amber-500/30 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm">
+                    <i class="fa-solid fa-utensils"></i>
+                </span>
+                <h3 class="text-base font-bold text-white">Добавить свой походный рецепт</h3>
+            </div>
+            <button onclick="closeAddRecipeModal()" class="text-slate-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+
+        <form action="/recipes/add" method="POST" class="space-y-4 text-xs">
+            <div>
+                <label class="block font-semibold text-slate-300 mb-1">Название блюда:</label>
+                <input type="text" name="title" required placeholder="Например: Ханская шурпа по-семейному" class="w-full bg-slate-950 border border-slate-700 focus:border-amber-500 rounded-xl p-2.5 text-white outline-none">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                    <label class="block font-semibold text-slate-300 mb-1">Категория:</label>
+                    <select name="category" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white outline-none">
+                        <option value="kazan">🍲 Казан классический</option>
+                        <option value="afghan_kazan">⚡ Афганский казан</option>
+                        <option value="mangal">🍢 Мангал & Гриль</option>
+                        <option value="skovoroda">🍳 Садж & Сковорода</option>
+                        <option value="fish">🐟 Рыба & Уха</option>
+                        <option value="tea_dessert">☕ Чай & Напитки</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-300 mb-1">Время готовки:</label>
+                    <input type="text" name="time" value="1 час" placeholder="45 мин / 1.5 часа" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-300 mb-1">Сложность:</label>
+                    <select name="difficulty" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white outline-none">
+                        <option value="Очень легко">Очень легко</option>
+                        <option value="Легко" selected>Легко</option>
+                        <option value="Средне">Средне</option>
+                        <option value="Сложно">Сложно</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block font-semibold text-slate-300 mb-1">Краткое описание:</label>
+                <input type="text" name="description" placeholder="В чем особенность вкуса или подачи" class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white outline-none">
+            </div>
+
+            <div>
+                <label class="block font-semibold text-slate-300 mb-1">
+                    Ингредиенты на 1 человека (каждый с новой строки в формате: "Продукт: количество"):
+                </label>
+                <textarea name="ingredients_text" rows="4" required placeholder="Мясо говядина: 0.25 кг&#10;Картофель: 0.2 кг&#10;Лук репчатый: 0.1 кг&#10;Зира и соль: 1 порц." class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white font-mono outline-none"></textarea>
+            </div>
+
+            <div>
+                <label class="block font-semibold text-slate-300 mb-1">
+                    Пошаговое приготовление (каждый шаг с новой строки):
+                </label>
+                <textarea name="steps_text" rows="4" required placeholder="1. Раскалите масло в казане...&#10;2. Обжарьте мясо до золотистой корочки...&#10;3. Заложите овощи и томите на углях..." class="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white outline-none"></textarea>
+            </div>
+
+            <div class="pt-2 flex justify-end gap-2">
+                <button type="button" onclick="closeAddRecipeModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white cursor-pointer">Отмена</button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-bold shadow-lg cursor-pointer">Сохранить рецепт</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
 <script>
 function handleRecipeSubmit(form, recipeId) {
     const sel = form.querySelector('select[name="trip_id_select"]');
@@ -126,6 +273,16 @@ function handleRecipeSubmit(form, recipeId) {
         form.action = '/trips/' + sel.value + '/recipes/import';
     }
     return true;
+}
+
+function openAddRecipeModal() {
+    const modal = document.getElementById('add-recipe-modal');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeAddRecipeModal() {
+    const modal = document.getElementById('add-recipe-modal');
+    if (modal) modal.classList.add('hidden');
 }
 </script>
 {% endblock %}
