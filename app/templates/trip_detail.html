@@ -39,13 +39,14 @@
                 </p>
             </div>
 
-            <!-- Действия с поездкой: AI-Егерь, WhatsApp, PDF, GPX, SOS, статус, удаление -->
+            <!-- Действия с поездкой: AI-Егерь, WhatsApp, PDF, GPX, статус, удаление -->
+            {% set is_captain = (request.cookies.get('aivar_camp_role') == 'captain') %}
             <div class="flex flex-wrap items-center gap-2">
-                <button onclick="openRangerModal()" class="inline-flex items-center gap-2 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-slate-950 text-xs font-extrabold px-3.5 py-2.5 rounded-xl shadow-lg transition active:scale-95" title="Тактический совет AI-Егеря по погоде">
+                <button onclick="openRangerModal()" class="inline-flex items-center gap-2 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-slate-950 text-xs font-extrabold px-3.5 py-2.5 rounded-xl shadow-lg transition active:scale-95 cursor-pointer" title="Тактический совет AI-Егеря по погоде">
                     <i class="fa-solid fa-robot"></i> Совет AI-Егеря
                 </button>
 
-                <button onclick="copyWhatsAppPlan()" class="inline-flex items-center gap-2 bg-emerald-700/30 hover:bg-emerald-600/40 text-emerald-400 border border-emerald-500/30 text-xs font-bold px-3.5 py-2.5 rounded-xl transition" title="Скопировать красивый план для отправки в WhatsApp">
+                <button onclick="copyWhatsAppPlan()" class="inline-flex items-center gap-2 bg-emerald-700/30 hover:bg-emerald-600/40 text-emerald-400 border border-emerald-500/30 text-xs font-bold px-3.5 py-2.5 rounded-xl transition cursor-pointer" title="Скопировать красивый план для отправки в WhatsApp">
                     <i class="fa-brands fa-whatsapp text-sm"></i> В WhatsApp
                 </button>
 
@@ -57,29 +58,31 @@
                     <i class="fa-solid fa-file-arrow-down"></i> GPX
                 </a>
 
-                <button onclick="openSosModal()" class="inline-flex items-center gap-2 bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 text-xs font-bold px-3 py-2.5 rounded-xl transition" title="Экстренные GPS координаты лагеря">
-                    <i class="fa-solid fa-life-ring"></i> SOS
-                </button>
-
+                {% if is_captain %}
                 <form action="/trips/{{ trip.id }}/status" method="POST">
                     {% if trip.status == 'planned' %}
                     <input type="hidden" name="status" value="completed">
-                    <button type="submit" class="inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl shadow-lg transition">
+                    <button type="submit" class="inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl shadow-lg transition cursor-pointer">
                         <i class="fa-solid fa-check-double"></i> Завершить
                     </button>
                     {% else %}
                     <input type="hidden" name="status" value="planned">
-                    <button type="submit" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3.5 py-2.5 rounded-xl border border-slate-700 transition">
+                    <button type="submit" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3.5 py-2.5 rounded-xl border border-slate-700 transition cursor-pointer">
                         <i class="fa-solid fa-rotate-left"></i> В активные
                     </button>
                     {% endif %}
                 </form>
 
                 <form action="/trips/{{ trip.id }}/delete" method="POST" onsubmit="return confirm('Удалить эту поездку навсегда?');">
-                    <button type="submit" class="p-2.5 bg-slate-800 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 rounded-xl border border-slate-700 transition" title="Удалить поездку">
+                    <button type="submit" class="p-2.5 bg-slate-800 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 rounded-xl border border-slate-700 transition cursor-pointer" title="Удалить поездку">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
                 </form>
+                {% else %}
+                <span class="text-[11px] font-semibold text-slate-400 bg-slate-800/80 px-2.5 py-1.5 rounded-xl border border-slate-700">
+                    👀 Просмотр
+                </span>
+                {% endif %}
             </div>
         </div>
 
@@ -772,38 +775,10 @@
         <!-- Форма вопроса Егерю -->
         <form onsubmit="askRangerChat(event)" class="flex gap-2 pt-2 border-t border-slate-800">
             <input type="text" id="ranger-query-input" placeholder="Спросить егеря (например: на что ловить сазана?)" class="flex-1 bg-slate-950 border border-slate-700 focus:border-teal-500 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none">
-            <button type="submit" class="bg-teal-600 hover:bg-teal-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-1.5 shadow">
+            <button type="submit" class="bg-teal-600 hover:bg-teal-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-1.5 shadow cursor-pointer">
                 <i class="fa-solid fa-paper-plane"></i>
             </button>
         </form>
-    </div>
-</div>
-
-<!-- Модальное окно SOS Координат -->
-<div id="sos-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur flex items-center justify-center p-4">
-    <div class="bg-slate-900 border border-rose-800/60 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 class="text-base font-bold text-rose-400 flex items-center gap-2">
-                <i class="fa-solid fa-triangle-exclamation"></i> Экстренные координаты лагеря
-            </h3>
-            <button onclick="closeSosModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-        </div>
-
-        <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2 text-xs">
-            <p class="text-slate-300 font-semibold">Текст для отправки в экстренную службу / родным:</p>
-            <div id="sos-text-content" class="p-3 bg-slate-900 rounded-xl font-mono text-emerald-400 select-all">
-SOS! Мы в лагере: {{ trip.dest_name }}. Координаты GPS: {{ trip.dest_lat }}, {{ trip.dest_lng }}. Требуется помощь.
-            </div>
-        </div>
-
-        <div class="flex gap-2">
-            <button onclick="copySosText()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1.5">
-                <i class="fa-regular fa-copy"></i> Скопировать текст
-            </button>
-            <a href="tel:112" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition flex items-center gap-1.5">
-                <i class="fa-solid fa-phone"></i> 112
-            </a>
-        </div>
     </div>
 </div>
 {% endblock %}
@@ -968,21 +943,6 @@ SOS! Мы в лагере: {{ trip.dest_name }}. Координаты GPS: {{ tr
 
         navigator.clipboard.writeText(text).then(() => {
             alert('✅ План поездки скопирован! Теперь просто вставьте его в чат WhatsApp или Telegram.');
-        });
-    }
-
-    function openSosModal() {
-        document.getElementById('sos-modal').classList.remove('hidden');
-    }
-
-    function closeSosModal() {
-        document.getElementById('sos-modal').classList.add('hidden');
-    }
-
-    function copySosText() {
-        const text = document.getElementById('sos-text-content').innerText.trim();
-        navigator.clipboard.writeText(text).then(() => {
-            alert('SOS-сообщение с координатами скопировано!');
         });
     }
 </script>

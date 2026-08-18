@@ -85,20 +85,65 @@
                         <i class="fa-solid fa-book-bookmark text-sky-400"></i> Архив
                     </a>
                     <a href="/guide" class="px-3 py-2 rounded-lg text-sm font-medium hover:text-white hover:bg-slate-800 transition flex items-center gap-2">
-                        <i class="fa-solid fa-shield-heart text-rose-400"></i> SOS & Справочник
+                        <i class="fa-solid fa-book-open text-amber-400"></i> Справочник рыбака
                     </a>
                 </nav>
 
-                <!-- Кнопка запланировать выезд -->
+                <!-- Статус доступа (Капитан / Гость) и Кнопка создания -->
+                {% set is_captain = (request.cookies.get('aivar_camp_role') == 'captain') %}
                 <div class="flex items-center gap-2">
+                    {% if is_captain %}
+                    <div class="hidden sm:flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-xl text-xs text-emerald-400 font-semibold">
+                        <span>👑 Капитан Aivar</span>
+                        <form action="/auth/logout" method="POST" class="inline">
+                            <input type="hidden" name="redirect_url" value="{{ request.url.path }}">
+                            <button type="submit" class="text-slate-400 hover:text-rose-400 ml-1 cursor-pointer" title="Выйти из режима капитана"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+                        </form>
+                    </div>
                     <a href="/trips/new" class="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs sm:text-sm font-bold px-3.5 sm:px-4 py-2 sm:py-2.2 rounded-xl shadow-lg shadow-emerald-900/40 hover:shadow-emerald-900/60 transition active:scale-95">
                         <i class="fa-solid fa-plus"></i>
                         <span>Новый выезд</span>
                     </a>
+                    {% else %}
+                    <button onclick="openCaptainLoginModal()" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-700 transition" title="Вход для Айвара">
+                        <i class="fa-solid fa-key text-amber-400"></i>
+                        <span>Вход капитана</span>
+                    </button>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </header>
+
+    <!-- Модальное окно входа Капитана (Айвара) -->
+    <div id="captain-login-modal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-emerald-500/30 rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-lock"></i>
+                    </span>
+                    <h3 class="text-sm font-bold text-white">Вход капитана Aivar</h3>
+                </div>
+                <button onclick="closeCaptainLoginModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <p class="text-xs text-slate-400">
+                Только капитан может создавать новые поездки и менять снаряжение. Друзья могут смотреть сайт без пароля.
+            </p>
+
+            <form action="/auth/login" method="POST" class="space-y-3">
+                <input type="hidden" name="redirect_url" value="{{ request.url.path }}">
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">PIN-код или пароль:</label>
+                    <input type="password" name="pin" required autofocus placeholder="Введите PIN (086)" class="w-full bg-slate-950 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none font-mono tracking-widest text-center">
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition shadow flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-unlock"></i> Войти как капитан
+                </button>
+            </form>
+        </div>
+    </div>
 
     <!-- Основной контент страницы -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -116,19 +161,28 @@
                 <i class="fa-solid fa-warehouse text-lg"></i>
                 <span class="text-[10px] font-medium">Гараж</span>
             </a>
+            {% if is_captain %}
             <a href="/trips/new" class="flex flex-col items-center -mt-5">
                 <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950 flex items-center justify-center shadow-lg shadow-emerald-900/60 active:scale-95 transition">
                     <i class="fa-solid fa-plus text-xl font-bold"></i>
                 </div>
                 <span class="text-[10px] font-bold text-emerald-400 mt-0.5">Создать</span>
             </a>
+            {% else %}
+            <button onclick="openCaptainLoginModal()" class="flex flex-col items-center -mt-5">
+                <div class="w-12 h-12 rounded-full bg-slate-800 text-amber-400 border border-amber-500/30 flex items-center justify-center shadow-lg active:scale-95 transition">
+                    <i class="fa-solid fa-key text-lg"></i>
+                </div>
+                <span class="text-[10px] font-bold text-amber-400 mt-0.5">Капитан</span>
+            </button>
+            {% endif %}
             <a href="/trophies" class="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-400 py-1">
                 <i class="fa-solid fa-trophy text-lg"></i>
                 <span class="text-[10px] font-medium">Трофеи</span>
             </a>
             <a href="/guide" class="flex flex-col items-center gap-1 text-slate-400 hover:text-rose-400 py-1">
-                <i class="fa-solid fa-shield-heart text-lg"></i>
-                <span class="text-[10px] font-medium">SOS</span>
+                <i class="fa-solid fa-book-open text-lg"></i>
+                <span class="text-[10px] font-medium">Справка</span>
             </a>
         </div>
     </div>
@@ -149,12 +203,22 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="/static/js/app.js"></script>
     
-    <!-- PWA Service Worker Registration -->
+    <!-- PWA Service Worker Registration & Auth Scripts -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/static/sw.js').catch(err => console.log('SW registration error', err));
             });
+        }
+
+        function openCaptainLoginModal() {
+            const modal = document.getElementById('captain-login-modal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeCaptainLoginModal() {
+            const modal = document.getElementById('captain-login-modal');
+            if (modal) modal.classList.add('hidden');
         }
     </script>
     {% block scripts %}{% endblock %}

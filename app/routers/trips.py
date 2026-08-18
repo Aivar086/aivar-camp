@@ -12,6 +12,7 @@ from app.services.gear_presets import DEFAULT_GEAR_PRESETS
 from app.services.routing import calculate_haversine_distance
 from app.services.astro import get_moon_phase, calculate_sun_times
 from app.services.kitchen_calc import generate_food_ration
+from app.routers.auth import is_captain
 
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "..", "templates"))
 router = APIRouter()
@@ -39,6 +40,9 @@ def index(request: Request, db: Session = Depends(get_db)):
 
 @router.get("/trips/new", response_class=HTMLResponse)
 def trip_create_page(request: Request, db: Session = Depends(get_db)):
+    if not is_captain(request):
+        return RedirectResponse(url="/?require_captain=1", status_code=303)
+
     inventory_items = db.query(UserInventoryItem).all()
     return templates.TemplateResponse(
         request=request,
@@ -51,6 +55,7 @@ def trip_create_page(request: Request, db: Session = Depends(get_db)):
 
 @router.post("/trips/new")
 def trip_create(
+    request: Request,
     title: str = Form(...),
     description: Optional[str] = Form(None),
     start_date: Optional[str] = Form(None),

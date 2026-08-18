@@ -1,12 +1,13 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 import os
 import json
 
 from app.database import engine, Base, SessionLocal
 from app.models import UserInventoryItem, Trip
-from app.routers import trips, gear, api, trophies, waypoints, logistics, guide, inventory, ai_ranger
+from app.routers import trips, gear, api, trophies, waypoints, logistics, guide, inventory, ai_ranger, auth
+from app.routers.auth import is_authorized, get_user_role, COOKIE_AUTH_ROLE, ROLE_CAPTAIN, ROLE_GUEST
 
 # Автоматическое создание / обновление таблиц базы данных при запуске
 Base.metadata.create_all(bind=engine)
@@ -43,6 +44,41 @@ app = FastAPI(
     version="2.3.0"
 )
 
+# Middleware полной приватности сайта
+@app.middleware("http")
+async def private_access_middleware(request: Request, call_next):
+    path = request.url.path
+    
+    # Разрешенные публичные пути: статика, фавиконки, вход
+    public_prefixes = ["/static", "/favicon.ico", "/apple-touch-icon", "/login", "/auth/login"]
+    if any(path.startswith(prefix) for prefix in public_prefixes):
+        return await call_next(request)
+        
+    # Проверка ключа в URL (?key=...)
+    key_param = request.query_params.get("key")
+    if key_param:
+        role = get_user_role(request)
+        if role in [ROLE_CAPTAIN, ROLE_GUEST]:
+            response = await call_next(request)
+            response.set_cookie(
+                key=COOKIE_AUTH_ROLE,
+                value=role,
+                max_age=60 * 60 * 24 * 90,
+                httponly=True,
+                samesite="lax"
+            )
+            return response
+            
+    # Проверка наличия прав (кука)
+    if not is_authorized(request):
+        # Если это API запрос — возвращаем 401
+        if path.startswith("/api/"):
+            return HTMLResponse(status_code=401, content='{"error": "Unauthorized"}')
+        # Для страниц — перенаправляем на экран закрытого входа
+        return RedirectResponse(url=f"/login?redirect_url={path}", status_code=303)
+        
+    return await call_next(request)
+
 # Подключение статических файлов
 static_dir = os.path.join(os.path.dirname(__file__), "static")
 if not os.path.exists(static_dir):
@@ -60,6 +96,7 @@ def get_favicon():
     return HTMLResponse(status_code=204)
 
 # Подключение маршрутов
+app.include_router(auth.router)
 app.include_router(trips.router)
 app.include_router(gear.router)
 app.include_router(inventory.router)
