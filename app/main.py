@@ -1,17 +1,46 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, HTMLResponse
 import os
+import json
 
-from app.database import engine, Base
+from app.database import engine, Base, SessionLocal
+from app.models import UserInventoryItem, Trip
 from app.routers import trips, gear, api, trophies, waypoints, logistics, guide, inventory
 
 # Автоматическое создание / обновление таблиц базы данных при запуске
 Base.metadata.create_all(bind=engine)
 
+def auto_seed_user_inventory():
+    db = SessionLocal()
+    try:
+        count = db.query(UserInventoryItem).count()
+        if count == 0:
+            json_path = os.path.join(os.path.dirname(__file__), "services", "user_inventory.json")
+            if os.path.exists(json_path):
+                with open(json_path, "r", encoding="utf-8") as f:
+                    items = json.load(f)
+                for it in items:
+                    db.add(UserInventoryItem(
+                        category=it.get("category", "other"),
+                        name=it.get("name"),
+                        brand_or_model=it.get("brand_or_model"),
+                        quantity=it.get("quantity", "1 шт"),
+                        weight_kg=it.get("weight_kg"),
+                        notes=it.get("notes")
+                    ))
+                db.commit()
+    except Exception as e:
+        print("Auto-seed error:", e)
+    finally:
+        db.close()
+
+auto_seed_user_inventory()
+
 app = FastAPI(
     title="Aivar Camp — Кемпинг & Рыбалка в Казахстане",
     description="Комплексный сервис для организации выездов: маршруты, рыболовная погода, барометр, фазы Луны, тайминги солнца, калькуляторы кухни и топлива, чек-листы и журнал трофеев.",
-    version="2.2.0"
+    version="2.3.0"
 )
 
 # Подключение статических файлов

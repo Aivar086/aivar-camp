@@ -1,6 +1,7 @@
+import os
+import json
 from app.database import engine, Base, SessionLocal
 from app.models import Trip, GearItem, Trophy, Waypoint, FoodItem, ExpenseItem, UserInventoryItem
-from app.services.gear_presets import DEFAULT_GEAR_PRESETS
 from app.services.kitchen_calc import generate_food_ration
 
 Base.metadata.drop_all(bind=engine)
@@ -8,43 +9,21 @@ Base.metadata.create_all(bind=engine)
 
 db = SessionLocal()
 
-# Заполняем "Мой Личный Гараж" пользователя для старта
-inventory_sample = [
-    # Лагерь
-    {"cat": "camp", "name": "Палатка кемпинговая 3-местная", "model": "Tramp Cave 3 (водостойкость 8000мм)", "qty": "1 шт", "weight": 5.2, "notes": "В зеленом чехле, полный комплект колышков"},
-    {"cat": "camp", "name": "Спальный мешок зимний/демисезон", "model": "Alexika Mountain (-5°C)", "qty": "2 шт", "weight": 2.1, "notes": "Комфорт до -5 градусов"},
-    {"cat": "camp", "name": "Самонадувающийся коврик 5см", "model": "Naturehike", "qty": "2 шт", "weight": 1.4, "notes": "Отличная теплоизоляция"},
-    {"cat": "camp", "name": "Тент кемпинговый от солнца и дождя", "model": "4х4 метра с люверсами", "qty": "1 шт", "weight": 2.0, "notes": "Веревка 25м в комплекте"},
-    {"cat": "camp", "name": "Кемпинговые складные стулья", "model": "С подстаканниками", "qty": "3 шт", "weight": 4.5, "notes": "До 120 кг"},
-    {"cat": "camp", "name": "Налобный фонарь с аккумулятором", "model": "Fenix HL60R (Type-C)", "qty": "2 шт", "weight": 0.3, "notes": "Заряжен на 100%"},
-    
-    # Рыбалка
-    {"cat": "fishing", "name": "Спиннинг джиговый 2.44м", "model": "Major Craft Soul Stick 10-42g", "qty": "1 шт", "weight": 0.13, "notes": "Основной спиннинг на судака и щуку"},
-    {"cat": "fishing", "name": "Катушка безынерционная 3000", "model": "Shimano Stradic FL 3000 (шнур #1.2)", "qty": "1 шт", "weight": 0.23, "notes": "Шнур 8-жилка Varivas"},
-    {"cat": "fishing", "name": "Фидерное удилище 3.9м (до 120г)", "model": "Zemex Iron Feeder", "qty": "2 шт", "weight": 0.28, "notes": "Для сазана и леща на течении"},
-    {"cat": "fishing", "name": "Коробка с силиконовыми приманками", "model": "Keitech, Relax, виброхвосты 4-5\"", "qty": "2 шт", "weight": 1.5, "notes": "Джиг-головки 14-26г"},
-    {"cat": "fishing", "name": "Подсачек складной прорезиненный", "model": "Большая голова 65см", "qty": "1 шт", "weight": 0.9, "notes": "Не цепляет крючки"},
-    {"cat": "fishing", "name": "Электронный безмен и рулетка", "model": "До 50 кг (точность 10г)", "qty": "1 шт", "weight": 0.2, "notes": "В боковом кармане сумки"},
-    
-    # Лодка
-    {"cat": "boat", "name": "Надувная ПВХ лодка 3.3м с транцем", "model": "Aquamania с жестким дном (слань)", "qty": "1 шт", "weight": 34.0, "notes": "В багажнике авто"},
-    {"cat": "boat", "name": "Лодочный мотор 9.8 л.с.", "model": "Tohatsu 9.8 2-тактный", "qty": "1 шт", "weight": 26.0, "notes": "Бак 12л + смесь с маслом 1:50"},
-    {"cat": "boat", "name": "Спасательные жилеты сертифицированные", "model": "Свисток + светоотражатели", "qty": "3 шт", "weight": 1.5, "notes": "Обязательно надевать на воде!"},
-    {"cat": "boat", "name": "Якорь-гриб 5.5 кг + трос 20м", "model": "Чугун в пластике", "qty": "1 шт", "weight": 6.0, "notes": "Держит на течении"},
-    
-    # Кухня
-    {"cat": "kitchen", "name": "Походная газовая плитка в кейсе", "model": "С переходником под цанговый баллон", "qty": "1 шт", "weight": 1.6, "notes": "Запас газа 4 баллона"},
-    {"cat": "kitchen", "name": "Казан чугунный 8 литров с крышкой", "model": "Узбекский шлифованный", "qty": "1 шт", "weight": 6.8, "notes": "Для плова, ухи и дичи"},
-    {"cat": "kitchen", "name": "Чайник походный алюминиевый 1.5л", "model": "Fire-Maple", "qty": "1 шт", "weight": 0.25, "notes": "Быстрый нагрев"},
-]
+# Заполняем "Мой Личный Гараж" реальным списком пользователя
+json_path = os.path.join(os.path.dirname(__file__), "app", "services", "user_inventory.json")
+if os.path.exists(json_path):
+    with open(json_path, "r", encoding="utf-8") as f:
+        inventory_sample = json.load(f)
+else:
+    inventory_sample = []
 
 for it in inventory_sample:
     db.add(UserInventoryItem(
-        category=it["cat"],
-        name=it["name"],
-        brand_or_model=it.get("model"),
-        quantity=it.get("qty", "1 шт"),
-        weight_kg=it.get("weight"),
+        category=it.get("category", "other"),
+        name=it.get("name"),
+        brand_or_model=it.get("brand_or_model"),
+        quantity=it.get("quantity", "1 шт"),
+        weight_kg=it.get("weight_kg"),
         notes=it.get("notes")
     ))
 

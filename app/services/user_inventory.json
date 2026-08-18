@@ -1,0 +1,226 @@
+[
+  {
+    "category": "camp",
+    "name": "Палатка надувная",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": null,
+    "notes": null
+  },
+  {
+    "category": "camp",
+    "name": "Спальный мешок",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "camp",
+    "name": "Каремат",
+    "brand_or_model": null,
+    "quantity": "2 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "camp",
+    "name": "Вкладыш в спальный мешок",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "camp",
+    "name": "Стулья",
+    "brand_or_model": null,
+    "quantity": "2",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "camp",
+    "name": "Стал коричневый",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "camp",
+    "name": "Столик маленький",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "fishing",
+    "name": "Донка",
+    "brand_or_model": null,
+    "quantity": "2",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "fishing",
+    "name": "Спиннинг",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "fishing",
+    "name": "Приманки",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "fishing",
+    "name": "Прикормка",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "fishing",
+    "name": "Подсак",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "fishing",
+    "name": "Садок",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "boat",
+    "name": "Спасательный жилет",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "kitchen",
+    "name": "Казан",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "kitchen",
+    "name": "Афганский казан",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "kitchen",
+    "name": "Набор посуды",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "kitchen",
+    "name": "Чайник",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": null,
+    "notes": null
+  },
+  {
+    "category": "other",
+    "name": "Лопата",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "other",
+    "name": "Топор",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "other",
+    "name": "Пила",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "camp",
+    "name": "Тент",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "clothes",
+    "name": "Костюм камуфляжный",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 1.0,
+    "notes": null
+  },
+  {
+    "category": "clothes",
+    "name": "Кроксы",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "clothes",
+    "name": "Термо-белье",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "clothes",
+    "name": "Ботинки",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "clothes",
+    "name": "Ветровка",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  },
+  {
+    "category": "clothes",
+    "name": "Шапка",
+    "brand_or_model": null,
+    "quantity": "1 шт",
+    "weight_kg": 0.0,
+    "notes": null
+  }
+]
