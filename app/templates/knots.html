@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Справочник рыболовных и походных узлов — Aivar Camp{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Заголовок -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
+                <span class="w-9 h-9 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-link"></i>
+                </span>
+                Справочник рыболовных и лагерных узлов
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1">Пошаговые инструкции, прочность и правила вязки узлов для снастей и лагеря</p>
+        </div>
+
+        <div class="flex items-center gap-2 text-xs">
+            <span class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300">
+                <i class="fa-solid fa-water text-sky-400 mr-1"></i> Всегда смачивайте узел водой перед затяжкой!
+            </span>
+        </div>
+    </div>
+
+    <!-- Сетка узлов -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {% for k in knots %}
+        <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4 flex flex-col justify-between">
+            <div class="space-y-4">
+                
+                <!-- Шапка карточки -->
+                <div class="flex items-start justify-between gap-3 border-b border-slate-800 pb-3">
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl">{{ k.icon }}</span>
+                        <div>
+                            <h2 class="text-lg font-bold text-white">{{ k.title }}</h2>
+                            <span class="text-xs text-teal-400 font-semibold">{{ k.category_title }}</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs font-bold px-2.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            Прочность: {{ k.strength }}
+                        </span>
+                    </div>
+                </div>
+
+                <p class="text-xs text-slate-300">{{ k.description }}</p>
+
+                <!-- Для чего применять -->
+                <div class="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800 text-xs space-y-1">
+                    <span class="font-bold text-amber-400 block"><i class="fa-solid fa-bullseye mr-1"></i> Лучшее применение:</span>
+                    <p class="text-slate-300">{{ k.best_for }}</p>
+                </div>
+
+                <!-- Пошаговые действия -->
+                <div class="space-y-2 text-xs">
+                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                        Пошаговая схема вязки:
+                    </span>
+                    <div class="space-y-1.5 text-slate-300">
+                        {% for step in k.steps %}
+                        <p class="leading-relaxed bg-slate-950/40 p-2 rounded-xl border border-slate-800/60">{{ step }}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="pt-3 border-t border-slate-800 text-[11px] text-slate-500 flex justify-between">
+                <span>Сложность: <b class="text-slate-400">{{ k.difficulty }}</b></span>
+                <span>Aivar Camp Узлы</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

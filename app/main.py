@@ -6,7 +6,7 @@ import json
 
 from app.database import engine, Base, SessionLocal
 from app.models import UserInventoryItem, Trip
-from app.routers import trips, gear, api, trophies, waypoints, logistics, guide, inventory, ai_ranger, auth
+from app.routers import trips, gear, api, trophies, waypoints, logistics, guide, inventory, ai_ranger, auth, recipes, knots
 from app.routers.auth import is_authorized, get_user_role, COOKIE_AUTH_ROLE, ROLE_CAPTAIN, ROLE_GUEST
 
 # Автоматическое создание / обновление таблиц базы данных при запуске
@@ -100,6 +100,8 @@ app.include_router(auth.router)
 app.include_router(trips.router)
 app.include_router(gear.router)
 app.include_router(inventory.router)
+app.include_router(recipes.router)
+app.include_router(knots.router)
 app.include_router(trophies.router)
 app.include_router(waypoints.router)
 app.include_router(logistics.router)

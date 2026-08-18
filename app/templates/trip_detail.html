@@ -459,16 +459,22 @@
                 </p>
             </div>
 
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
+                <a href="/recipes?trip_id={{ trip.id }}" class="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-lg flex items-center gap-1.5 active:scale-95">
+                    <i class="fa-solid fa-utensils"></i> Рецепты в казане
+                </a>
+                {% if is_captain %}
                 <form action="/trips/{{ trip.id }}/food/generate" method="POST">
-                    <button type="submit" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-lg flex items-center gap-1.5">
-                        <i class="fa-solid fa-calculator"></i> Пересчитать раскладку
+                    <button type="submit" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-calculator text-amber-400"></i> Авто-раскладка
                     </button>
                 </form>
+                {% endif %}
             </div>
         </div>
 
-        <!-- Быстрое добавление своего продукта -->
+        {% if is_captain %}
+        <!-- Быстрое добавление своего продукта (Капитан) -->
         <form action="/trips/{{ trip.id }}/food/add" method="POST" class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800/90 grid grid-cols-1 sm:grid-cols-12 gap-3">
             <div class="sm:col-span-5">
                 <label class="block text-[11px] font-medium text-slate-400 mb-1">Название продукта</label>
@@ -483,11 +489,12 @@
                 <input type="text" name="assigned_to" value="Я" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
             </div>
             <div class="sm:col-span-2 flex items-end">
-                <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-2 px-3 rounded-xl text-xs transition">
+                <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-2 px-3 rounded-xl text-xs transition cursor-pointer">
                     + Добавить
                 </button>
             </div>
         </form>
+        {% endif %}
 
         <!-- Список продуктов по категориям -->
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
