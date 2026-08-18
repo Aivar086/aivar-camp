@@ -154,7 +154,7 @@ def trip_create(
     return RedirectResponse(url=f"/trips/{trip.id}", status_code=303)
 
 @router.get("/trips/{trip_id}", response_class=HTMLResponse)
-def trip_detail(trip_id: int, request: Request, db: Session = Depends(get_db)):
+async def trip_detail(trip_id: int, request: Request, db: Session = Depends(get_db)):
     trip = db.query(Trip).filter(Trip.id == trip_id).first()
     if not trip:
         raise HTTPException(status_code=404, detail="Поездка не найдена")
@@ -219,6 +219,13 @@ def trip_detail(trip_id: int, request: Request, db: Session = Depends(get_db)):
     food_total = len(food_items)
     food_bought = sum(1 for f in food_items if f.is_bought)
 
+    # Загружаем прогноз погоды и барометр клева на сервере для мгновенного отображения
+    from app.services.weather import get_weather_forecast
+    try:
+        weather_res = await get_weather_forecast(trip.dest_lat or 43.8950, trip.dest_lng or 77.0850, 7)
+    except Exception as e:
+        weather_res = {"status": "error", "days": []}
+
     return templates.TemplateResponse(
         request=request,
         name="trip_detail.html",
@@ -238,10 +245,11 @@ def trip_detail(trip_id: int, request: Request, db: Session = Depends(get_db)):
             "expenses": expenses,
             "moon_info": moon_info,
             "sun_info": sun_info,
+            "weather_data": weather_res,
             "roundtrip_km": roundtrip_km,
             "fuel_liters": fuel_liters,
             "fuel_cost": fuel_cost,
-            "other_expenses_total": round(other_expenses_total),
+            "other_expenses_total": other_expenses_total,
             "total_budget": total_budget,
             "cost_per_person": cost_per_person
         }
