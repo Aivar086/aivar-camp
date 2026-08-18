@@ -6,7 +6,7 @@ import json
 
 from app.database import engine, Base, SessionLocal
 from app.models import UserInventoryItem, Trip
-from app.routers import trips, gear, api, trophies, waypoints, logistics, guide, inventory
+from app.routers import trips, gear, api, trophies, waypoints, logistics, guide, inventory, ai_ranger
 
 # Автоматическое создание / обновление таблиц базы данных при запуске
 Base.metadata.create_all(bind=engine)
@@ -67,6 +67,7 @@ app.include_router(trophies.router)
 app.include_router(waypoints.router)
 app.include_router(logistics.router)
 app.include_router(guide.router)
+app.include_router(ai_ranger.router)
 app.include_router(api.router)
 
 if __name__ == "__main__":

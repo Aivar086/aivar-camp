@@ -255,6 +255,25 @@ async def trip_detail(trip_id: int, request: Request, db: Session = Depends(get_
         }
     )
 
+@router.get("/trips/{trip_id}/print", response_class=HTMLResponse)
+def trip_print_page(trip_id: int, request: Request, db: Session = Depends(get_db)):
+    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+    if not trip:
+        raise HTTPException(status_code=404, detail="Поездка не найдена")
+
+    gear_items = db.query(GearItem).filter(GearItem.trip_id == trip_id).all()
+    food_items = db.query(FoodItem).filter(FoodItem.trip_id == trip_id).all()
+
+    return templates.TemplateResponse(
+        request=request,
+        name="trip_print.html",
+        context={
+            "trip": trip,
+            "gear_items": gear_items,
+            "food_items": food_items
+        }
+    )
+
 @router.post("/trips/{trip_id}/status")
 def update_trip_status(
     trip_id: int,

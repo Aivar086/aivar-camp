@@ -39,14 +39,26 @@
                 </p>
             </div>
 
-            <!-- Действия с поездкой: GPX, SOS, статус, удаление -->
+            <!-- Действия с поездкой: AI-Егерь, WhatsApp, PDF, GPX, SOS, статус, удаление -->
             <div class="flex flex-wrap items-center gap-2">
-                <a href="/trips/{{ trip.id }}/export/gpx" download class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold px-3.5 py-2.5 rounded-xl border border-slate-700 transition" title="Скачать GPX трек для OsmAnd, Organic Maps, Garmin">
-                    <i class="fa-solid fa-file-arrow-down"></i> GPX трек
+                <button onclick="openRangerModal()" class="inline-flex items-center gap-2 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-slate-950 text-xs font-extrabold px-3.5 py-2.5 rounded-xl shadow-lg transition active:scale-95" title="Тактический совет AI-Егеря по погоде">
+                    <i class="fa-solid fa-robot"></i> Совет AI-Егеря
+                </button>
+
+                <button onclick="copyWhatsAppPlan()" class="inline-flex items-center gap-2 bg-emerald-700/30 hover:bg-emerald-600/40 text-emerald-400 border border-emerald-500/30 text-xs font-bold px-3.5 py-2.5 rounded-xl transition" title="Скопировать красивый план для отправки в WhatsApp">
+                    <i class="fa-brands fa-whatsapp text-sm"></i> В WhatsApp
+                </button>
+
+                <a href="/trips/{{ trip.id }}/print" target="_blank" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3 py-2.5 rounded-xl border border-slate-700 transition" title="Распечатать или сохранить в PDF">
+                    <i class="fa-solid fa-print"></i> PDF
                 </a>
 
-                <button onclick="openSosModal()" class="inline-flex items-center gap-2 bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 text-xs font-bold px-3.5 py-2.5 rounded-xl transition" title="Экстренные GPS координаты лагеря">
-                    <i class="fa-solid fa-life-ring"></i> SOS координаты
+                <a href="/trips/{{ trip.id }}/export/gpx" download class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold px-3 py-2.5 rounded-xl border border-slate-700 transition" title="Скачать GPX трек для навигаторов">
+                    <i class="fa-solid fa-file-arrow-down"></i> GPX
+                </a>
+
+                <button onclick="openSosModal()" class="inline-flex items-center gap-2 bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 text-xs font-bold px-3 py-2.5 rounded-xl transition" title="Экстренные GPS координаты лагеря">
+                    <i class="fa-solid fa-life-ring"></i> SOS
                 </button>
 
                 <form action="/trips/{{ trip.id }}/status" method="POST">
@@ -641,10 +653,10 @@
         </div>
 
         <!-- Форма добавления нового трофея -->
-        <form action="/trips/{{ trip.id }}/trophies/add" method="POST" class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800/90 grid grid-cols-1 sm:grid-cols-12 gap-3 text-xs">
+        <form action="/trips/{{ trip.id }}/trophies/add" method="POST" enctype="multipart/form-data" class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800/90 grid grid-cols-1 sm:grid-cols-12 gap-3 text-xs">
             <div class="sm:col-span-3">
                 <label class="block text-[11px] font-medium text-slate-400 mb-1">Вид рыбы *</label>
-                <input type="text" name="species" required placeholder="Щука / Судак / Окунь" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
+                <input type="text" name="species" required placeholder="Щука / Судак / Сазан / Жерех" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
             </div>
             <div class="sm:col-span-2">
                 <label class="block text-[11px] font-medium text-slate-400 mb-1">Вес (кг) *</label>
@@ -655,24 +667,24 @@
                 <input type="number" step="1" name="length_cm" placeholder="65" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
             </div>
             <div class="sm:col-span-3">
-                <label class="block text-[11px] font-medium text-slate-400 mb-1">Приманка / снасть</label>
-                <input type="text" name="lure_or_bait" placeholder="Джиг 14г, виброхвост" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
+                <label class="block text-[11px] font-medium text-slate-400 mb-1">Приманка / насадка</label>
+                <input type="text" name="lure_or_bait" placeholder="Кастмастер 21г / Кукуруза" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
             </div>
             <div class="sm:col-span-2">
                 <label class="block text-[11px] font-medium text-slate-400 mb-1">Глубина (м)</label>
                 <input type="number" step="0.5" name="depth_m" placeholder="4.5" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
             </div>
             
-            <div class="sm:col-span-4">
+            <div class="sm:col-span-3">
                 <label class="block text-[11px] font-medium text-slate-400 mb-1">Время поимки</label>
                 <input type="text" name="time_of_catch" placeholder="Утренняя зорька, 06:15" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
             </div>
-            <div class="sm:col-span-5">
-                <label class="block text-[11px] font-medium text-slate-400 mb-1">Ссылка на фото (URL)</label>
-                <input type="text" name="image_url" placeholder="https://... или оставьте пустым" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
+            <div class="sm:col-span-6">
+                <label class="block text-[11px] font-medium text-slate-400 mb-1">📸 Фото улова (с камеры или галереи)</label>
+                <input type="file" name="photo" accept="image/*" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-1.5 text-xs text-slate-300 outline-none file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-600 file:text-white hover:file:bg-amber-500 cursor-pointer">
             </div>
             <div class="sm:col-span-3 flex items-end">
-                <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold p-2 rounded-xl transition flex items-center justify-center gap-1.5">
+                <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold p-2.5 rounded-xl transition flex items-center justify-center gap-1.5 shadow-lg">
                     <i class="fa-solid fa-plus"></i> Записать трофей
                 </button>
             </div>
@@ -682,28 +694,89 @@
         {% if trophies %}
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {% for t in trophies %}
-            <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-4 space-y-2 text-xs">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h4 class="font-bold text-white text-sm"><i class="fa-solid fa-fish text-sky-400 mr-1"></i>{{ t.species }}</h4>
-                        <span class="text-[11px] font-bold text-amber-400">{{ t.weight_kg }} кг {% if t.length_cm %}({{ t.length_cm }} см){% endif %}</span>
+            <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-4 space-y-3 text-xs flex flex-col justify-between">
+                <div class="space-y-2">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-bold text-white text-sm"><i class="fa-solid fa-fish text-sky-400 mr-1"></i>{{ t.species }}</h4>
+                            <span class="text-xs font-bold text-amber-400">{{ t.weight_kg }} кг {% if t.length_cm %}({{ t.length_cm }} см){% endif %}</span>
+                        </div>
+                        <form action="/trophies/{{ t.id }}/delete" method="POST" onsubmit="return confirm('Удалить этот трофей?');">
+                            <button type="submit" class="text-slate-500 hover:text-rose-400 p-1"><i class="fa-solid fa-trash-can"></i></button>
+                        </form>
                     </div>
-                    <form action="/trophies/{{ t.id }}/delete" method="POST">
-                        <button type="submit" class="text-slate-500 hover:text-rose-400"><i class="fa-solid fa-trash-can"></i></button>
-                    </form>
+
+                    {% if t.image_url %}
+                    <div class="rounded-xl overflow-hidden border border-slate-800 h-36 bg-slate-900">
+                        <img src="{{ t.image_url }}" alt="{{ t.species }}" class="w-full h-full object-cover hover:scale-105 transition duration-300">
+                    </div>
+                    {% endif %}
+
+                    {% if t.lure_or_bait %}
+                    <p class="text-slate-400"><span class="text-slate-500">Приманка:</span> <b class="text-slate-300">{{ t.lure_or_bait }}</b></p>
+                    {% endif %}
+                    {% if t.time_of_catch %}
+                    <p class="text-slate-400"><span class="text-slate-500">Время:</span> {{ t.time_of_catch }}</p>
+                    {% endif %}
+                    {% if t.depth_m %}
+                    <p class="text-slate-400"><span class="text-slate-500">Глубина:</span> {{ t.depth_m }} м</p>
+                    {% endif %}
                 </div>
-                {% if t.lure_or_bait %}
-                <p class="text-slate-400"><span class="text-slate-500">Приманка:</span> {{ t.lure_or_bait }}</p>
-                {% endif %}
-                {% if t.time_of_catch %}
-                <p class="text-slate-400"><span class="text-slate-500">Время:</span> {{ t.time_of_catch }}</p>
-                {% endif %}
             </div>
             {% endfor %}
         </div>
         {% endif %}
     </div>
 
+</div>
+
+<!-- Модальное окно AI-Егеря (Рыболовный советник & Чат) -->
+<div id="ranger-modal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-teal-500/40 rounded-3xl p-5 sm:p-6 max-w-xl w-full shadow-2xl space-y-4 max-h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center gap-2.5">
+                <span class="w-9 h-9 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-robot"></i>
+                </span>
+                <div>
+                    <h3 class="text-base font-bold text-white">AI-Егерь Aivar Camp</h3>
+                    <p class="text-[11px] text-slate-400">Анализ погоды, тактика ловли и ответы на вопросы</p>
+                </div>
+            </div>
+            <button onclick="closeRangerModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+
+        <!-- Тактический отчет по погоде этой поездки -->
+        <div class="overflow-y-auto flex-1 space-y-3 pr-1 text-xs" id="ranger-content">
+            <div class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 space-y-2">
+                <h4 class="font-bold text-teal-400 flex items-center gap-1.5 text-xs">
+                    <i class="fa-solid fa-bullseye"></i> Тактический прогноз на выезд:
+                </h4>
+                <div id="ranger-tactics" class="space-y-1.5 text-slate-300">
+                    <div class="flex items-center gap-2 py-4 justify-center text-slate-400">
+                        <i class="fa-solid fa-spinner fa-spin text-teal-400 text-lg"></i>
+                        <span>Егерь анализирует барометр и погодные условия...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- История чата с Егерем -->
+            <div class="space-y-2" id="ranger-chat-history">
+                <div class="bg-slate-950/60 p-3 rounded-2xl border border-slate-800 text-slate-300 space-y-1">
+                    <span class="text-[10px] text-teal-400 font-bold block"><i class="fa-solid fa-tree mr-1"></i>Егерь:</span>
+                    <p>Приветствую, рыбак! Спроси меня о приманках на судака или сазана, как привязать поводок, как сварить уху в казане или что делать при сильном ветре!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Форма вопроса Егерю -->
+        <form onsubmit="askRangerChat(event)" class="flex gap-2 pt-2 border-t border-slate-800">
+            <input type="text" id="ranger-query-input" placeholder="Спросить егеря (например: на что ловить сазана?)" class="flex-1 bg-slate-950 border border-slate-700 focus:border-teal-500 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none">
+            <button type="submit" class="bg-teal-600 hover:bg-teal-500 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs transition flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </form>
+    </div>
 </div>
 
 <!-- Модальное окно SOS Координат -->
@@ -739,16 +812,15 @@ SOS! Мы в лагере: {{ trip.dest_name }}. Координаты GPS: {{ tr
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         initDetailMap();
-        loadWeatherForecast({{ trip.dest_lat }}, {{ trip.dest_lng }}, 'weather-container');
     });
 
     let detailMap;
 
     function initDetailMap() {
-        const startLat = {{ trip.origin_lat or 55.7558 }};
-        const startLng = {{ trip.origin_lng or 37.6173 }};
-        const destLat = {{ trip.dest_lat }};
-        const destLng = {{ trip.dest_lng }};
+        const startLat = {{ trip.origin_lat or 43.2389 }};
+        const startLng = {{ trip.origin_lng or 76.8897 }};
+        const destLat = {{ trip.dest_lat or 43.8950 }};
+        const destLng = {{ trip.dest_lng or 77.0850 }};
 
         detailMap = L.map('map-detail').setView([destLat, destLng], 10);
 
@@ -810,6 +882,94 @@ SOS! Мы в лагере: {{ trip.dest_name }}. Координаты GPS: {{ tr
         });
     }
 
+    // AI-Егерь функции
+    function openRangerModal() {
+        document.getElementById('ranger-modal').classList.remove('hidden');
+        loadRangerTactics();
+    }
+
+    function closeRangerModal() {
+        document.getElementById('ranger-modal').classList.add('hidden');
+    }
+
+    async function loadRangerTactics() {
+        const tacticsDiv = document.getElementById('ranger-tactics');
+        try {
+            const resp = await fetch(`/api/ranger/trip-tactics/{{ trip.id }}`, { method: 'POST' });
+            const data = await resp.json();
+            
+            let html = '';
+            if (data.warnings && data.warnings.length > 0) {
+                html += `<div class="p-2.5 rounded-xl bg-rose-950/40 border border-rose-800/60 text-rose-300 space-y-1 mb-2 font-medium">`;
+                data.warnings.forEach(w => { html += `<p>${w}</p>`; });
+                html += `</div>`;
+            }
+
+            if (data.tactics && data.tactics.length > 0) {
+                data.tactics.forEach(t => {
+                    html += `<p class="leading-relaxed">${t.replace(/\*\*(.*?)\*\*/g, '<b class="text-white">$1</b>')}</p>`;
+                });
+            }
+
+            if (data.lure_recommendations && data.lure_recommendations.length > 0) {
+                html += `<div class="pt-2 border-t border-slate-800 text-teal-300"><b>💡 По приманкам:</b> ${data.lure_recommendations.join(' ')}</div>`;
+            }
+
+            tacticsDiv.innerHTML = html || 'Метеоусловия стабильные, стандартная тактика ловли.';
+        } catch (e) {
+            tacticsDiv.innerHTML = '<p class="text-rose-400">Не удалось загрузить рекомендации егеря.</p>';
+        }
+    }
+
+    async function askRangerChat(e) {
+        e.preventDefault();
+        const input = document.getElementById('ranger-query-input');
+        const query = input.value.trim();
+        if (!query) return;
+
+        const history = document.getElementById('ranger-chat-history');
+        history.innerHTML += `
+            <div class="bg-teal-950/30 p-2.5 rounded-2xl border border-teal-500/20 text-teal-200 text-right">
+                <span class="text-[10px] text-slate-400 block">Вы:</span>
+                <p class="font-medium">${query}</p>
+            </div>
+        `;
+        input.value = '';
+
+        try {
+            const formData = new FormData();
+            formData.append('query', query);
+            const resp = await fetch('/api/ranger/chat', { method: 'POST', body: formData });
+            const res = await resp.json();
+
+            history.innerHTML += `
+                <div class="bg-slate-950/80 p-3 rounded-2xl border border-slate-800 text-slate-300 space-y-1">
+                    <span class="text-[10px] text-teal-400 font-bold block"><i class="fa-solid fa-tree mr-1"></i>Егерь:</span>
+                    <div class="leading-relaxed whitespace-pre-line">${res.answer.replace(/\*\*(.*?)\*\*/g, '<b class="text-white">$1</b>')}</div>
+                </div>
+            `;
+            document.getElementById('ranger-content').scrollTop = document.getElementById('ranger-content').scrollHeight;
+        } catch (err) {
+            history.innerHTML += `<div class="text-rose-400 text-[11px]">Ошибка ответа егеря</div>`;
+        }
+    }
+
+    // Скопировать готовый план для WhatsApp
+    function copyWhatsAppPlan() {
+        const text = `🏕️ *ПЛАН ВЫЕЗДА: {{ trip.title }}*\n` +
+            `📅 *Даты:* {{ trip.start_date or '—' }} — {{ trip.end_date or '—' }} ({{ trip.duration_days }} дн.)\n` +
+            `📍 *Локация:* {{ trip.dest_name }}\n` +
+            `🧭 *GPS Координаты:* https://maps.google.com/?q={{ trip.dest_lat }},{{ trip.dest_lng }}\n` +
+            `🚗 *Маршрут:* {{ trip.distance_km }} км в одну сторону (расход ~{{ fuel_liters }} л, {{ fuel_cost }} ₸)\n\n` +
+            `📦 *Снаряжение:* Собрано {{ packed_count }} из {{ total_count }} поз. (подробнее в приложении)\n` +
+            `🍲 *Продукты:* Закупка распределена по участникам.\n\n` +
+            `📱 *Подробный план:* ${window.location.href}`;
+
+        navigator.clipboard.writeText(text).then(() => {
+            alert('✅ План поездки скопирован! Теперь просто вставьте его в чат WhatsApp или Telegram.');
+        });
+    }
+
     function openSosModal() {
         document.getElementById('sos-modal').classList.remove('hidden');
     }
@@ -826,3 +986,4 @@ SOS! Мы в лагере: {{ trip.dest_name }}. Координаты GPS: {{ tr
     }
 </script>
 {% endblock %}
+
