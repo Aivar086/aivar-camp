@@ -241,7 +241,7 @@
                 </h2>
                 <p class="text-xs text-slate-400">Метеоданные в точке лагеря (давление, ветер, осадки и активность рыбы)</p>
             </div>
-            <button onclick="loadWeatherForecast({{ trip.dest_lat }}, {{ trip.dest_lng }}, 'weather-container')" class="self-start sm:self-auto text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 transition flex items-center gap-1.5">
+            <button onclick="loadWeatherForecast({{ trip.dest_lat or 43.8950 }}, {{ trip.dest_lng or 77.0850 }}, 'weather-container')" class="self-start sm:self-auto text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 transition flex items-center gap-1.5 active:scale-95 cursor-pointer">
                 <i class="fa-solid fa-rotate text-emerald-400"></i> Обновить прогноз
             </button>
         </div>
@@ -812,6 +812,7 @@ SOS! Мы в лагере: {{ trip.dest_name }}. Координаты GPS: {{ tr
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         initDetailMap();
+        loadWeatherForecast({{ trip.dest_lat or 43.8950 }}, {{ trip.dest_lng or 77.0850 }}, 'weather-container');
     });
 
     let detailMap;
