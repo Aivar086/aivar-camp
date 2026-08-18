@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Мои выезды — Camp & Fish Planner{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Hero баннер / Приветствие -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-slate-900 to-emerald-950/40 border border-slate-800 p-6 sm:p-8 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="max-w-2xl relative z-10 space-y-3">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
+                <i class="fa-solid fa-compass fa-spin-pulse"></i> Казахстан • Кемпинг & Рыбалка
+            </div>
+            <h1 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+                Aivar Camp Pro
+            </h1>
+            <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                Точный расчет маршрута по Казахстану, прогноз клева по барометру и ветру, умный чек-лист личного гаража, раскладка кухни и журнал трофеев.
+            </p>
+            <div class="pt-2 flex flex-wrap gap-3">
+                <a href="/trips/new" class="inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-emerald-950/40 transition active:scale-95 text-sm">
+                    <i class="fa-solid fa-map-location-dot"></i> Запланировать выезд
+                </a>
+                <a href="/inventory" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-teal-950/40 text-teal-300 font-medium px-4 py-2.5 rounded-xl border border-slate-700 transition text-sm">
+                    <i class="fa-solid fa-warehouse text-teal-400"></i> Мой Гараж Снаряжения
+                </a>
+            </div>
+        </div>
+
+        <div class="shrink-0 relative z-10 hidden sm:block">
+            <img src="/static/img/logo.png" alt="Aivar Camp" class="w-36 h-36 md:w-44 md:h-44 rounded-full shadow-2xl border-2 border-emerald-500/40 object-cover bg-white animate-pulse-slow">
+        </div>
+    </div>
+
+    <!-- Краткая сводка / Статистика -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div class="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-4 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl shrink-0">
+                <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div>
+                <p class="text-xs font-medium text-slate-400">Запланировано</p>
+                <p class="text-xl font-bold text-white">{{ planned_trips|length }} выездов</p>
+            </div>
+        </div>
+        <div class="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-4 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center text-xl shrink-0">
+                <i class="fa-solid fa-flag-checkered"></i>
+            </div>
+            <div>
+                <p class="text-xs font-medium text-slate-400">Завершено выездов</p>
+                <p class="text-xl font-bold text-white">{{ completed_trips|length }}</p>
+            </div>
+        </div>
+        <div class="col-span-2 sm:col-span-1 bg-slate-900/70 border border-slate-800/80 rounded-2xl p-4 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl shrink-0">
+                <i class="fa-solid fa-weight-scale"></i>
+            </div>
+            <div>
+                <p class="text-xs font-medium text-slate-400">Зафиксирован улов</p>
+                <p class="text-xl font-bold text-white">{{ total_catch }} кг</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Раздел: Запланированные поездки -->
+    <div class="space-y-4">
+        <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-route text-emerald-400"></i> Предстоящие выезды
+            </h2>
+            <a href="/trips/new" class="text-xs text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1">
+                + Добавить <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            </a>
+        </div>
+
+        {% if planned_trips %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {% for trip in planned_trips %}
+                <div class="bg-slate-900/90 border border-slate-800 hover:border-slate-700 rounded-3xl p-5 shadow-xl transition flex flex-col justify-between group">
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                <i class="fa-solid fa-clock"></i> Запланировано
+                            </span>
+                            {% if trip.start_date %}
+                            <span class="text-xs font-medium text-slate-400">
+                                <i class="fa-regular fa-calendar mr-1"></i>{{ trip.start_date }} {% if trip.end_date %}— {{ trip.end_date }}{% endif %}
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-bold text-white group-hover:text-emerald-400 transition">
+                                <a href="/trips/{{ trip.id }}">{{ trip.title }}</a>
+                            </h3>
+                            <p class="text-xs text-slate-400 flex items-center gap-1.5 mt-1">
+                                <i class="fa-solid fa-location-dot text-rose-400"></i> {{ trip.dest_name }}
+                            </p>
+                        </div>
+
+                        {% if trip.description %}
+                        <p class="text-xs text-slate-300 line-clamp-2">{{ trip.description }}</p>
+                        {% endif %}
+
+                        <!-- Сводка дороги -->
+                        <div class="flex items-center gap-4 py-2 border-t border-b border-slate-800 text-xs text-slate-300">
+                            <div>
+                                <span class="text-slate-400 block text-[10px]">Дистанция</span>
+                                <span class="font-semibold text-white"><i class="fa-solid fa-road text-slate-400 mr-1"></i>{{ trip.distance_km }} км</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block text-[10px]">В пути</span>
+                                <span class="font-semibold text-white"><i class="fa-solid fa-car text-slate-400 mr-1"></i>~{{ (trip.duration_minutes // 60) }}ч {{ (trip.duration_minutes % 60) }}м</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-2 flex items-center justify-between gap-2">
+                        <a href="/trips/{{ trip.id }}" class="flex-1 text-center bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-200 text-xs font-semibold py-2.5 px-3 rounded-xl transition">
+                            Открыть план & чек-лист
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="bg-slate-900/50 border border-slate-800 border-dashed rounded-3xl p-8 text-center space-y-3">
+                <div class="w-14 h-14 mx-auto rounded-2xl bg-slate-800 flex items-center justify-center text-slate-400 text-2xl">
+                    <i class="fa-solid fa-tent"></i>
+                </div>
+                <h3 class="text-base font-semibold text-white">У вас пока нет запланированных поездок</h3>
+                <p class="text-xs text-slate-400 max-w-sm mx-auto">
+                    Выберите точку на карте, рассчитайте маршрут, посмотрите прогноз погоды и соберите вещи по списку.
+                </p>
+                <a href="/trips/new" class="inline-flex items-center gap-2 bg-emerald-500 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs hover:bg-emerald-400 transition">
+                    <i class="fa-solid fa-plus"></i> Создать первую поездку
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Раздел: Недавняя история / Завершенные -->
+    {% if completed_trips %}
+    <div class="space-y-4 pt-4 border-t border-slate-800">
+        <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-fish text-sky-400"></i> Недавние завершенные выезды
+            </h2>
+            <a href="/history" class="text-xs text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1">
+                Все в архиве <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for trip in completed_trips[:4] %}
+            <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between gap-4">
+                <div class="space-y-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs bg-slate-800 text-sky-400 px-2 py-0.5 rounded font-medium">Завершен</span>
+                        <h4 class="text-sm font-bold text-white truncate"><a href="/trips/{{ trip.id }}" class="hover:underline">{{ trip.title }}</a></h4>
+                    </div>
+                    <p class="text-xs text-slate-400 truncate"><i class="fa-solid fa-location-dot text-rose-400 mr-1"></i>{{ trip.dest_name }}</p>
+                    {% if trip.catch_species %}
+                    <p class="text-xs text-emerald-400 font-medium"><i class="fa-solid fa-trophy mr-1"></i>Улов: {{ trip.catch_species }} ({{ trip.catch_weight_kg }} кг)</p>
+                    {% endif %}
+                </div>
+                <a href="/trips/{{ trip.id }}" class="shrink-0 p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+/* Custom styles for Leaflet and Camping App */
+.leaflet-container {
+    background-color: #0f172a !important;
+    font-family: inherit;
+    border-radius: 0.75rem;
+}
+
+.leaflet-popup-content-wrapper {
+    background: #1e293b !important;
+    color: #f8fafc !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid #334155 !important;
+}
+
+.leaflet-popup-tip {
+    background: #1e293b !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}
+
+/* Smooth transitions */
+.gear-checkbox:checked + label {
+    text-decoration: line-through;
+    color: #64748b;
+}
+
+.pulse-glow {
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.35);
+}
+
+/* Flatpickr Custom Dark Theme Tweaks */
+.flatpickr-calendar {
+    background: #0f172a !important;
+    border: 1px solid #334155 !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important;
+    font-family: inherit !important;
+}
+
+.flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange {
+    background: #10b981 !important;
+    border-color: #10b981 !important;
+    color: #020617 !important;
+    font-weight: 700 !important;
+}
+
+.flatpickr-day:hover {
+    background: #1e293b !important;
+}
+
+.flatpickr-day.today {
+    border-color: #10b981 !important;
+}
+
+.flatpickr-months .flatpickr-month {
+    background: #0f172a !important;
+    color: #f8fafc !important;
+    border-radius: 1rem 1rem 0 0 !important;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+    background: #0f172a !important;
+}
+

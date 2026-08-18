@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ru" class="h-full bg-slate-900 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f172a">
+    <title>{% block title %}Кемпинг & Рыбалка Pro — Планировщик выездов{% endblock %}</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/static/manifest.json">
+    
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        forest: {
+                            800: '#14281d',
+                            900: '#0b1912',
+                        },
+                        river: {
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                        },
+                        campfire: {
+                            500: '#f97316',
+                            600: '#ea580c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    
+    <!-- Flatpickr Datepicker (Dark Theme + Russian) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    
+    <!-- Favicon & Touch Icon -->
+    <link rel="icon" type="image/png" href="/static/img/logo.png">
+    <link rel="apple-touch-icon" href="/static/img/logo.png">
+    
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="flex flex-col min-h-full font-['Plus_Jakarta_Sans',sans-serif] bg-slate-950 text-slate-200 selection:bg-emerald-500 selection:text-white">
+
+    <!-- Верхняя шапка сайта (Navbar) -->
+    <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Логотип -->
+                <a href="/" class="flex items-center gap-3 group">
+                    <img src="/static/img/logo.png" alt="Aivar Camp" class="w-11 h-11 rounded-full shadow-lg border border-emerald-500/30 group-hover:scale-105 transition duration-200 object-cover bg-white">
+                    <div>
+                        <span class="text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
+                            Aivar Camp <span class="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-semibold">Pro</span>
+                        </span>
+                        <p class="text-xs text-slate-400 -mt-0.5">Кемпинг, Рыбалка & Логистика</p>
+                    </div>
+                </a>
+
+                <!-- Навигация на ПК -->
+                <nav class="hidden lg:flex items-center gap-1">
+                    <a href="/" class="px-3 py-2 rounded-lg text-sm font-medium hover:text-white hover:bg-slate-800 transition flex items-center gap-2">
+                        <i class="fa-solid fa-map-location-dot text-emerald-400"></i> Поездки
+                    </a>
+                    <a href="/inventory" class="px-3 py-2 rounded-lg text-sm font-medium hover:text-white hover:bg-slate-800 transition flex items-center gap-2">
+                        <i class="fa-solid fa-warehouse text-teal-400"></i> Мой Гараж
+                    </a>
+                    <a href="/trophies" class="px-3 py-2 rounded-lg text-sm font-medium hover:text-white hover:bg-slate-800 transition flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-amber-400"></i> Трофеи
+                    </a>
+                    <a href="/history" class="px-3 py-2 rounded-lg text-sm font-medium hover:text-white hover:bg-slate-800 transition flex items-center gap-2">
+                        <i class="fa-solid fa-book-bookmark text-sky-400"></i> Архив
+                    </a>
+                    <a href="/guide" class="px-3 py-2 rounded-lg text-sm font-medium hover:text-white hover:bg-slate-800 transition flex items-center gap-2">
+                        <i class="fa-solid fa-shield-heart text-rose-400"></i> SOS & Справочник
+                    </a>
+                </nav>
+
+                <!-- Кнопка запланировать выезд -->
+                <div class="flex items-center gap-2">
+                    <a href="/trips/new" class="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs sm:text-sm font-bold px-3.5 sm:px-4 py-2 sm:py-2.2 rounded-xl shadow-lg shadow-emerald-900/40 hover:shadow-emerald-900/60 transition active:scale-95">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Новый выезд</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Основной контент страницы -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Мобильная нижняя панель навигации -->
+    <div class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur border-t border-slate-800 px-3 py-2">
+        <div class="flex items-center justify-around">
+            <a href="/" class="flex flex-col items-center gap-1 text-slate-400 hover:text-emerald-400 py-1">
+                <i class="fa-solid fa-map-location-dot text-lg"></i>
+                <span class="text-[10px] font-medium">Поездки</span>
+            </a>
+            <a href="/inventory" class="flex flex-col items-center gap-1 text-slate-400 hover:text-teal-400 py-1">
+                <i class="fa-solid fa-warehouse text-lg"></i>
+                <span class="text-[10px] font-medium">Гараж</span>
+            </a>
+            <a href="/trips/new" class="flex flex-col items-center -mt-5">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950 flex items-center justify-center shadow-lg shadow-emerald-900/60 active:scale-95 transition">
+                    <i class="fa-solid fa-plus text-xl font-bold"></i>
+                </div>
+                <span class="text-[10px] font-bold text-emerald-400 mt-0.5">Создать</span>
+            </a>
+            <a href="/trophies" class="flex flex-col items-center gap-1 text-slate-400 hover:text-amber-400 py-1">
+                <i class="fa-solid fa-trophy text-lg"></i>
+                <span class="text-[10px] font-medium">Трофеи</span>
+            </a>
+            <a href="/guide" class="flex flex-col items-center gap-1 text-slate-400 hover:text-rose-400 py-1">
+                <i class="fa-solid fa-shield-heart text-lg"></i>
+                <span class="text-[10px] font-medium">SOS</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Подвал -->
+    <footer class="border-t border-slate-800/80 bg-slate-900/50 py-6 text-center text-xs text-slate-400 mb-14 lg:mb-0">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p>🏕️ <b>Aivar Camp Pro</b> — Авторасчет маршрутов, барометр клева, раскладка кухни и журнал улова.</p>
+            <p class="text-slate-400">OpenStreetMap, OSRM, Open-Meteo & Offline PWA</p>
+        </div>
+    </footer>
+
+    <!-- Flatpickr JS & Russian Locale -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="/static/js/app.js"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js').catch(err => console.log('SW registration error', err));
+            });
+        }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

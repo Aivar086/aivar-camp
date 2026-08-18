@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}Галерея трофеев и рекордов — Camp & Fish Planner Pro{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Шапка страницы -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-base">
+                    <i class="fa-solid fa-trophy"></i>
+                </span>
+                Зал рыболовных трофеев
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Все ваши личные рекорды, фото и детали поимок на выездах</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <div class="bg-slate-900 border border-slate-800 px-4 py-2 rounded-2xl flex items-center gap-3">
+                <i class="fa-solid fa-scale-balanced text-emerald-400 text-xl"></i>
+                <div>
+                    <span class="text-[10px] text-slate-400 block font-medium">Общий вес уловов</span>
+                    <span class="text-sm font-bold text-white">{{ total_weight }} кг ({{ trophy_count }} шт)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if trophies %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {% for t in trophies %}
+            <div class="bg-slate-900/90 border border-slate-800 rounded-3xl overflow-hidden shadow-xl flex flex-col justify-between group hover:border-slate-700 transition">
+                
+                <!-- Фото трофея (если есть) или красивый градиентный баннер -->
+                <div class="relative h-44 bg-slate-950 flex items-center justify-center overflow-hidden">
+                    {% if t.image_url %}
+                    <img src="{{ t.image_url }}" alt="{{ t.species }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    {% else %}
+                    <div class="w-full h-full bg-gradient-to-tr from-slate-950 via-slate-900 to-emerald-950/40 flex flex-col items-center justify-center text-slate-600 space-y-2">
+                        <i class="fa-solid fa-fish text-5xl text-emerald-500/40"></i>
+                        <span class="text-[11px] text-slate-500">Фото не прикреплено</span>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Бейдж веса -->
+                    <div class="absolute top-3 right-3 bg-slate-900/90 backdrop-blur border border-amber-500/40 text-amber-400 font-extrabold px-3 py-1 rounded-xl text-sm shadow-lg flex items-center gap-1.5">
+                        <i class="fa-solid fa-weight-scale text-xs"></i> {{ t.weight_kg }} кг
+                    </div>
+
+                    <!-- Вид рыбы -->
+                    <div class="absolute bottom-3 left-3 bg-slate-900/90 backdrop-blur border border-slate-700 px-3 py-1 rounded-xl text-xs font-bold text-white shadow-lg">
+                        {{ t.species }}
+                    </div>
+                </div>
+
+                <!-- Детали поимки -->
+                <div class="p-5 space-y-3 flex-1 flex flex-col justify-between">
+                    <div class="space-y-2 text-xs">
+                        <div class="flex items-center justify-between text-slate-400 border-b border-slate-800/80 pb-2">
+                            <span><i class="fa-solid fa-map-pin text-rose-400 mr-1"></i> Поездка:</span>
+                            <a href="/trips/{{ t.trip_id }}" class="font-semibold text-slate-200 hover:text-emerald-400 truncate max-w-[150px]">{{ t.trip.title }}</a>
+                        </div>
+
+                        {% if t.length_cm %}
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span><i class="fa-solid fa-ruler-horizontal text-sky-400 mr-1"></i> Длина:</span>
+                            <span class="font-semibold text-slate-200">{{ t.length_cm }} см</span>
+                        </div>
+                        {% endif %}
+
+                        {% if t.lure_or_bait %}
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span><i class="fa-solid fa-worm text-amber-400 mr-1"></i> Приманка / снасть:</span>
+                            <span class="font-semibold text-slate-200 truncate max-w-[150px]">{{ t.lure_or_bait }}</span>
+                        </div>
+                        {% endif %}
+
+                        {% if t.depth_m %}
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span><i class="fa-solid fa-water text-indigo-400 mr-1"></i> Глубина:</span>
+                            <span class="font-semibold text-slate-200">{{ t.depth_m }} м</span>
+                        </div>
+                        {% endif %}
+
+                        {% if t.time_of_catch %}
+                        <div class="flex items-center justify-between text-slate-400">
+                            <span><i class="fa-solid fa-clock text-slate-400 mr-1"></i> Время поклевки:</span>
+                            <span class="font-semibold text-slate-200">{{ t.time_of_catch }}</span>
+                        </div>
+                        {% endif %}
+
+                        {% if t.notes %}
+                        <div class="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 text-[11px] text-slate-300">
+                            {{ t.notes }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
+                        <span class="text-slate-400">{{ t.created_at.strftime('%d.%m.%Y') }}</span>
+                        <a href="/trips/{{ t.trip_id }}#trophies-section" class="text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1">
+                            К поездке <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="bg-slate-900/50 border border-slate-800 border-dashed rounded-3xl p-12 text-center space-y-3">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-slate-800 flex items-center justify-center text-amber-400 text-3xl">
+                <i class="fa-solid fa-fish-fins"></i>
+            </div>
+            <h3 class="text-base font-semibold text-white">В галерее пока нет трофеев</h3>
+            <p class="text-xs text-slate-400 max-w-sm mx-auto">
+                Откройте любую поездку и добавьте свой первый улов (вид рыбы, вес, приманку и фото)!
+            </p>
+            <a href="/" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">
+                Перейти к поездкам
+            </a>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

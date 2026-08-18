@@ -1,0 +1,534 @@
+{% extends "base.html" %}
+
+{% block title %}Новая поездка — Camp & Fish Planner{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-6">
+
+    <!-- Заголовок страницы -->
+    <div class="flex items-center justify-between">
+        <div>
+            <a href="/" class="text-xs text-slate-400 hover:text-emerald-400 transition inline-flex items-center gap-1 mb-1">
+                <i class="fa-solid fa-arrow-left text-[10px]"></i> Назад к списку
+            </a>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-base">
+                    <i class="fa-solid fa-map-location"></i>
+                </span>
+                Планирование новой поездки
+            </h1>
+        </div>
+    </div>
+
+    <!-- Форма создания поездки -->
+    <form action="/trips/new" method="POST" id="create-trip-form" class="space-y-6">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Левая колонка: Основные поля -->
+            <div class="lg:col-span-5 space-y-5">
+                <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
+                    <h2 class="text-base font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
+                        <i class="fa-solid fa-pen-to-square text-emerald-400"></i> Основные данные
+                    </h2>
+
+                    <!-- Название выезда -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1.5" for="title">Название поездки *</label>
+                        <input type="text" id="title" name="title" required placeholder="Например: Выезд на Волгу за щукой" class="w-full bg-slate-950 border border-slate-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 transition outline-none">
+                    </div>
+
+                    <!-- Даты выезда (Интерактивный календарь) -->
+                    <div class="space-y-1.5">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1.5" for="start_date">
+                                    <i class="fa-regular fa-calendar-plus text-emerald-400 mr-1"></i> Дата начала
+                                </label>
+                                <div class="relative">
+                                    <input type="text" id="start_date" name="start_date" placeholder="Выберите дату" readonly class="w-full bg-slate-950 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none cursor-pointer">
+                                    <i class="fa-regular fa-calendar-days absolute right-3 top-3 text-slate-500 pointer-events-none text-xs"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1.5" for="end_date">
+                                    <i class="fa-regular fa-calendar-check text-sky-400 mr-1"></i> Дата окончания
+                                </label>
+                                <div class="relative">
+                                    <input type="text" id="end_date" name="end_date" placeholder="Выберите дату" readonly class="w-full bg-slate-950 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none cursor-pointer">
+                                    <i class="fa-regular fa-calendar-days absolute right-3 top-3 text-slate-500 pointer-events-none text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Быстрые кнопки выбора даты -->
+                        <div class="flex items-center gap-1.5 pt-1">
+                            <span class="text-[10px] text-slate-500">Быстро:</span>
+                            <button type="button" onclick="setQuickDates(0, 2)" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-700 transition">
+                                На 3 дня
+                            </button>
+                            <button type="button" onclick="setQuickDates(0, 6)" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-700 transition">
+                                На неделю
+                            </button>
+                            <button type="button" onclick="setNextWeekend()" class="text-[10px] bg-slate-800 hover:bg-emerald-950/40 text-emerald-400 px-2 py-0.5 rounded-lg border border-slate-700 transition">
+                                Ближайшие выходные
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Точка старта -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1.5" for="origin_name">
+                            <i class="fa-solid fa-house-chimney text-emerald-400 mr-1"></i> Точка отправления
+                        </label>
+                        <input type="text" id="origin_name" name="origin_name" value="Мой дом / Город" placeholder="Город или адрес" class="w-full bg-slate-950 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2 text-xs text-white outline-none">
+                        <input type="hidden" id="origin_lat" name="origin_lat" value="43.2389">
+                        <input type="hidden" id="origin_lng" name="origin_lng" value="76.8897">
+                    </div>
+
+                    <!-- Место назначения -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1.5" for="dest_name">
+                            <i class="fa-solid fa-location-dot text-rose-400 mr-1"></i> Место кемпинга / рыбалки *
+                        </label>
+                        <input type="text" id="dest_name" name="dest_name" required value="Озеро / Берег реки" placeholder="Название водоема или поляны" class="w-full bg-slate-950 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2 text-xs text-white outline-none">
+                        <input type="hidden" id="dest_lat" name="dest_lat" value="56.0000" required>
+                        <input type="hidden" id="dest_lng" name="dest_lng" value="37.8000" required>
+                    </div>
+
+                    <!-- Скрытые поля для авторасчета маршрута -->
+                    <input type="hidden" id="distance_km" name="distance_km" value="0">
+                    <input type="hidden" id="duration_minutes" name="duration_minutes" value="0">
+
+                    <!-- Расчетные данные маршрута -->
+                    <div class="bg-slate-950/70 rounded-2xl p-3 border border-slate-800 flex items-center justify-around text-center">
+                        <div>
+                            <span class="text-[10px] text-slate-400 block">Расстояние</span>
+                            <span id="route-dist-display" class="text-sm font-bold text-emerald-400">~0 км</span>
+                        </div>
+                        <div class="h-6 w-px bg-slate-800"></div>
+                        <div>
+                            <span class="text-[10px] text-slate-400 block">Время в пути</span>
+                            <span id="route-dur-display" class="text-sm font-bold text-sky-400">~0 мин</span>
+                        </div>
+                    </div>
+
+                    <!-- Описание / заметка -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1.5" for="description">Заметки к поездке</label>
+                        <textarea id="description" name="description" rows="2" placeholder="Особенности места, на какую рыбу нацелены, кого берем с собой..." class="w-full bg-slate-950 border border-slate-700 focus:border-emerald-500 rounded-xl px-3 py-2 text-xs text-white outline-none resize-none"></textarea>
+                    </div>
+
+                    <!-- Чекбокс загрузки снаряжения -->
+                    <div class="flex items-start gap-3 p-3 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+                        <input type="checkbox" id="include_default_gear" name="include_default_gear" value="true" checked class="w-4 h-4 mt-0.5 rounded text-teal-500 focus:ring-teal-400 bg-slate-900 border-slate-700 cursor-pointer">
+                        <label for="include_default_gear" class="text-xs text-slate-300 cursor-pointer select-none">
+                            {% if has_inventory %}
+                            <b class="text-teal-400">📦 Загрузить мои вещи из Гаража ({{ inventory_count }} предм.)</b>
+                            <span class="block text-[11px] text-slate-400">Ваш личный список палаток, снастей, лодки и экипировки</span>
+                            {% else %}
+                            <b class="text-emerald-400">📦 Загрузить базовый набор снаряжения</b>
+                            <span class="block text-[11px] text-slate-400">Стандартный чек-лист для лагеря и рыбалки</span>
+                            {% endif %}
+                        </label>
+                    </div>
+
+                    <!-- Кнопка отправки формы -->
+                    <button type="submit" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-emerald-950/50 transition active:scale-[0.98] flex items-center justify-center gap-2 text-sm">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Создать поездку и открыть план</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Правая колонка: Интерактивная карта Leaflet -->
+            <div class="lg:col-span-7 space-y-4">
+                <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
+                    
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <h2 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-map text-sky-400"></i> Интерактивная карта
+                        </h2>
+                        <span class="text-xs text-slate-400">
+                            Кликните по карте, чтобы указать точку лагеря 🏕️
+                        </span>
+                    </div>
+
+                    <!-- Поиск по названию места (геокодинг) -->
+                    <div class="relative">
+                        <div class="flex gap-2">
+                            <input type="text" id="map-search-input" placeholder="Поиск водоема, реки, озера или города..." class="flex-1 bg-slate-950 border border-slate-700 focus:border-sky-500 rounded-xl px-3.5 py-2 text-xs text-white outline-none">
+                            <button type="button" onclick="searchLocation()" class="bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition">
+                                Найти
+                            </button>
+                        </div>
+                        <div id="search-results-dropdown" class="hidden absolute left-0 right-0 top-11 z-50 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto text-xs divide-y divide-slate-800">
+                        </div>
+                    </div>
+
+                    <!-- Контейнер для карты Leaflet -->
+                    <div id="map-create" class="w-full h-[400px] rounded-2xl overflow-hidden border border-slate-700 shadow-inner"></div>
+
+                    <!-- Подсказки по карте -->
+                    <div class="flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2 bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+                            <span>Точка старта (Дом)</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
+                            <span>Точка стоянки / лагеря</span>
+                        </div>
+                        <button type="button" onclick="setMyCurrentLocation()" class="text-emerald-400 hover:underline flex items-center gap-1 font-medium">
+                            <i class="fa-solid fa-location-crosshairs"></i> Мое местоположение
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let map, startMarker, destMarker, routeLayer;
+    let startDatePicker, endDatePicker;
+    
+    // Координаты по умолчанию (Алматы / Казахстан)
+    let startLat = 43.2389, startLng = 76.8897;
+    let destLat = 43.8950, destLng = 77.0850;
+
+    document.addEventListener("DOMContentLoaded", function () {
+        initDatePickers();
+        initCreateMap();
+        // Автоматически сразу определяем местоположение пользователя
+        autoDetectUserLocation();
+    });
+
+    function initDatePickers() {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 3);
+
+        startDatePicker = flatpickr("#start_date", {
+            locale: "ru",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d F Y (D)",
+            minDate: "today",
+            defaultDate: today,
+            onChange: function(selectedDates, dateStr, instance) {
+                if (selectedDates.length > 0) {
+                    endDatePicker.set("minDate", selectedDates[0]);
+                    const newEnd = new Date(selectedDates[0]);
+                    newEnd.setDate(newEnd.getDate() + 2);
+                    endDatePicker.setDate(newEnd);
+                }
+            }
+        });
+
+        endDatePicker = flatpickr("#end_date", {
+            locale: "ru",
+            dateFormat: "Y-m-d",
+            altInput: true,
+            altFormat: "d F Y (D)",
+            minDate: "today",
+            defaultDate: tomorrow
+        });
+    }
+
+    function setQuickDates(startOffsetDays, durationDays) {
+        const d1 = new Date();
+        d1.setDate(d1.getDate() + startOffsetDays);
+        const d2 = new Date(d1);
+        d2.setDate(d1.getDate() + durationDays);
+
+        startDatePicker.setDate(d1, true);
+        endDatePicker.setDate(d2, true);
+    }
+
+    function setNextWeekend() {
+        const today = new Date();
+        const dayOfWeek = today.getDay(); // 0 - воскресенье, 5 - пятница, 6 - суббота
+        const daysUntilFriday = (5 - dayOfWeek + 7) % 7 || 7;
+        
+        const friday = new Date(today);
+        friday.setDate(today.getDate() + daysUntilFriday);
+        
+        const sunday = new Date(friday);
+        sunday.setDate(friday.getDate() + 2);
+
+        startDatePicker.setDate(friday, true);
+        endDatePicker.setDate(sunday, true);
+    }
+
+    function initCreateMap() {
+        map = L.map('map-create', {
+            zoomControl: true
+        }).setView([startLat, startLng], 10);
+
+        // OpenStreetMap тайлы
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Кастомная иконка старта (Дом)
+        const startIcon = L.divIcon({
+            className: 'custom-map-icon',
+            html: '<div class="w-8 h-8 rounded-full bg-emerald-500 text-white border-2 border-white shadow-xl flex items-center justify-center text-sm font-bold animate-bounce">🏠</div>',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16]
+        });
+
+        // Кастомная иконка лагеря (Палатка)
+        const destIcon = L.divIcon({
+            className: 'custom-map-icon',
+            html: '<div class="w-9 h-9 rounded-full bg-rose-600 text-white border-2 border-white shadow-xl flex items-center justify-center text-base font-bold">🏕️</div>',
+            iconSize: [36, 36],
+            iconAnchor: [18, 18]
+        });
+
+        // Маркер старта
+        startMarker = L.marker([startLat, startLng], {
+            draggable: true,
+            icon: startIcon,
+            title: "Точка старта (Дом)"
+        }).addTo(map).bindPopup("🏠 <b>Точка старта</b><br>Перетащите, если нужно другое место.");
+
+        startMarker.on('dragend', function(e) {
+            const pos = e.target.getLatLng();
+            startLat = pos.lat;
+            startLng = pos.lng;
+            document.getElementById('origin_lat').value = pos.lat.toFixed(5);
+            document.getElementById('origin_lng').value = pos.lng.toFixed(5);
+            reverseGeocodeOrigin(pos.lat, pos.lng);
+            updateRoute();
+        });
+
+        // Маркер назначения (Лагерь / Рыбалка)
+        destMarker = L.marker([destLat, destLng], {
+            draggable: true,
+            icon: destIcon,
+            title: "Место кемпинга / рыбалки"
+        }).addTo(map).bindPopup("🏕️ <b>Место стоянки / рыбалки</b><br>Кликните по карте, чтобы переместить.");
+
+        destMarker.on('dragend', function(e) {
+            const pos = e.target.getLatLng();
+            setDestination(pos.lat, pos.lng);
+        });
+
+        // Клик по карте переносит точку стоянки
+        map.on('click', function(e) {
+            setDestination(e.latlng.lat, e.latlng.lng);
+        });
+
+        // Добавляем плавающую кнопку «Мое местоположение» в правый верхний угол карты
+        addLocationControlToMap();
+        updateRoute();
+    }
+
+    function addLocationControlToMap() {
+        const locationControl = L.control({ position: 'topright' });
+        locationControl.onAdd = function() {
+            const div = L.DomUtil.create('div', 'leaflet-bar');
+            div.innerHTML = `
+                <button type="button" onclick="autoDetectUserLocation(true)" title="Определить мое местоположение" class="bg-slate-900 hover:bg-emerald-600 text-white p-2.5 rounded-xl border border-slate-700 shadow-xl flex items-center justify-center transition cursor-pointer">
+                    <i class="fa-solid fa-location-crosshairs text-base text-emerald-400 hover:text-white"></i>
+                </button>
+            `;
+            return div;
+        };
+        locationControl.addTo(map);
+    }
+
+    // Автоматическое определение локации
+    function autoDetectUserLocation(isUserClick = false) {
+        if ("geolocation" in navigator) {
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 8000,
+                maximumAge: 60000
+            };
+
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const uLat = position.coords.latitude;
+                    const uLng = position.coords.longitude;
+                    applyUserLocation(uLat, uLng);
+                },
+                function(error) {
+                    console.log("GPS unavailable, fallback to IP location:", error.message);
+                    // Запасной вариант: быстрое определение города по IP
+                    fallbackToIpLocation();
+                },
+                options
+            );
+        } else {
+            fallbackToIpLocation();
+        }
+    }
+
+    function applyUserLocation(lat, lng) {
+        startLat = lat;
+        startLng = lng;
+        
+        startMarker.setLatLng([lat, lng]);
+        document.getElementById('origin_lat').value = lat.toFixed(5);
+        document.getElementById('origin_lng').value = lng.toFixed(5);
+
+        // Точку кемпинга смещаем чуть в сторону от пользователя (~18-25 км на природу)
+        destLat = lat + 0.15;
+        destLng = lng + 0.12;
+        destMarker.setLatLng([destLat, destLng]);
+        document.getElementById('dest_lat').value = destLat.toFixed(5);
+        document.getElementById('dest_lng').value = destLng.toFixed(5);
+
+        map.setView([lat, lng], 11);
+
+        // Определяем человекопонятное название города пользователя
+        reverseGeocodeOrigin(lat, lng);
+        reverseGeocodeDest(destLat, destLng);
+        updateRoute();
+    }
+
+    function fallbackToIpLocation() {
+        fetch('https://ipapi.co/json/')
+            .then(res => res.json())
+            .then(data => {
+                if (data.latitude && data.longitude) {
+                    applyUserLocation(data.latitude, data.longitude);
+                    if (data.city) {
+                        document.getElementById('origin_name').value = data.city;
+                    }
+                }
+            })
+            .catch(err => {
+                console.log("IP location error:", err);
+            });
+    }
+
+    async function reverseGeocodeOrigin(lat, lng) {
+        try {
+            const resp = await fetch(`/api/reverse-geocode?lat=${lat}&lng=${lng}`);
+            const data = await resp.json();
+            if (data.city) {
+                document.getElementById('origin_name').value = data.city;
+                startMarker.bindPopup(`🏠 <b>Точка старта:</b><br>${data.city}`).openPopup();
+            }
+        } catch (e) {
+            console.log("Reverse geocode error:", e);
+        }
+    }
+
+    async function reverseGeocodeDest(lat, lng) {
+        try {
+            const resp = await fetch(`/api/reverse-geocode?lat=${lat}&lng=${lng}`);
+            const data = await resp.json();
+            if (data.city && document.getElementById('dest_name').value === "Место стоянки") {
+                document.getElementById('dest_name').value = `Окрестности ${data.city}`;
+            }
+        } catch (e) {
+            console.log("Reverse geocode dest error:", e);
+        }
+    }
+
+    function setDestination(lat, lng, name) {
+        destLat = lat;
+        destLng = lng;
+        destMarker.setLatLng([lat, lng]);
+        
+        document.getElementById('dest_lat').value = lat.toFixed(5);
+        document.getElementById('dest_lng').value = lng.toFixed(5);
+        
+        if (name) {
+            document.getElementById('dest_name').value = name;
+        }
+        
+        updateRoute();
+    }
+
+    async function updateRoute() {
+        const sLat = parseFloat(document.getElementById('origin_lat').value);
+        const sLng = parseFloat(document.getElementById('origin_lng').value);
+        const dLat = parseFloat(document.getElementById('dest_lat').value);
+        const dLng = parseFloat(document.getElementById('dest_lng').value);
+
+        if (!sLat || !dLat) return;
+
+        try {
+            const resp = await fetch(`/api/route?start_lat=${sLat}&start_lng=${sLng}&end_lat=${dLat}&end_lng=${dLng}`);
+            const data = await resp.json();
+
+            if (data.status === 'success' || data.status === 'fallback') {
+                document.getElementById('distance_km').value = data.distance_km;
+                document.getElementById('duration_minutes').value = data.duration_minutes;
+                
+                document.getElementById('route-dist-display').innerText = `${data.distance_km} км`;
+                const hours = Math.floor(data.duration_minutes / 60);
+                const mins = data.duration_minutes % 60;
+                document.getElementById('route-dur-display').innerText = hours > 0 ? `~${hours}ч ${mins}м` : `~${mins} мин`;
+
+                if (routeLayer) {
+                    map.removeLayer(routeLayer);
+                }
+
+                if (data.geometry) {
+                    routeLayer = L.geoJSON(data.geometry, {
+                        style: {
+                            color: '#10b981',
+                            weight: 5,
+                            opacity: 0.85
+                        }
+                    }).addTo(map);
+
+                    map.fitBounds(routeLayer.getBounds(), { padding: [40, 40] });
+                }
+            }
+        } catch (e) {
+            console.error("Ошибка построения маршрута:", e);
+        }
+    }
+
+    async function searchLocation() {
+        const query = document.getElementById('map-search-input').value.trim();
+        if (!query) return;
+
+        const dropdown = document.getElementById('search-results-dropdown');
+        dropdown.innerHTML = '<div class="p-3 text-slate-400">Поиск...</div>';
+        dropdown.classList.remove('hidden');
+
+        try {
+            const resp = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
+            const data = await resp.json();
+
+            if (data.results && data.results.length > 0) {
+                let html = '';
+                data.results.forEach(res => {
+                    html += `
+                        <div class="p-2.5 hover:bg-slate-800 cursor-pointer transition text-slate-200" onclick="chooseSearchResult(${res.lat}, ${res.lng}, '${res.name.replace(/'/g, "\\'")}')">
+                            <p class="font-medium truncate">${res.name}</p>
+                        </div>
+                    `;
+                });
+                dropdown.innerHTML = html;
+            } else {
+                dropdown.innerHTML = '<div class="p-3 text-slate-400">Ничего не найдено</div>';
+            }
+        } catch (e) {
+            dropdown.innerHTML = '<div class="p-3 text-rose-400">Ошибка поиска</div>';
+        }
+    }
+
+    function chooseSearchResult(lat, lng, name) {
+        document.getElementById('search-results-dropdown').classList.add('hidden');
+        setDestination(lat, lng, name.split(',')[0]);
+        map.setView([lat, lng], 11);
+    }
+</script>
+{% endblock %}

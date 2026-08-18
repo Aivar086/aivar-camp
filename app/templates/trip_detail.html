@@ -1,0 +1,768 @@
+{% extends "base.html" %}
+
+{% block title %}{{ trip.title }} — Центр управления выездом{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Верхний баннер экспедиции -->
+    <div class="bg-slate-900/95 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="space-y-2">
+                <div class="flex flex-wrap items-center gap-2">
+                    {% if trip.status == 'planned' %}
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <i class="fa-solid fa-clock"></i> Запланировано
+                    </span>
+                    {% else %}
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                        <i class="fa-solid fa-flag-checkered"></i> Поездка завершена
+                    </span>
+                    {% endif %}
+                    
+                    {% if trip.start_date %}
+                    <span class="text-xs text-slate-400 font-medium">
+                        <i class="fa-regular fa-calendar mr-1"></i>{{ trip.start_date }} {% if trip.end_date %}— {{ trip.end_date }}{% endif %} ({{ trip.duration_days or 3 }} дн.)
+                    </span>
+                    {% endif %}
+
+                    <span class="text-xs text-slate-400 font-medium">
+                        <i class="fa-solid fa-users mr-1 text-slate-500"></i>{{ trip.participants_count or 2 }} чел.
+                    </span>
+                </div>
+
+                <h1 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">{{ trip.title }}</h1>
+                <p class="text-xs sm:text-sm text-slate-300 flex items-center gap-2">
+                    <span><i class="fa-solid fa-house-chimney text-emerald-400"></i> {{ trip.origin_name }}</span>
+                    <i class="fa-solid fa-arrow-right text-slate-500 text-xs"></i>
+                    <span><i class="fa-solid fa-location-dot text-rose-400"></i> <b>{{ trip.dest_name }}</b></span>
+                </p>
+            </div>
+
+            <!-- Действия с поездкой: GPX, SOS, статус, удаление -->
+            <div class="flex flex-wrap items-center gap-2">
+                <a href="/trips/{{ trip.id }}/export/gpx" download class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold px-3.5 py-2.5 rounded-xl border border-slate-700 transition" title="Скачать GPX трек для OsmAnd, Organic Maps, Garmin">
+                    <i class="fa-solid fa-file-arrow-down"></i> GPX трек
+                </a>
+
+                <button onclick="openSosModal()" class="inline-flex items-center gap-2 bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 text-xs font-bold px-3.5 py-2.5 rounded-xl transition" title="Экстренные GPS координаты лагеря">
+                    <i class="fa-solid fa-life-ring"></i> SOS координаты
+                </button>
+
+                <form action="/trips/{{ trip.id }}/status" method="POST">
+                    {% if trip.status == 'planned' %}
+                    <input type="hidden" name="status" value="completed">
+                    <button type="submit" class="inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl shadow-lg transition">
+                        <i class="fa-solid fa-check-double"></i> Завершить
+                    </button>
+                    {% else %}
+                    <input type="hidden" name="status" value="planned">
+                    <button type="submit" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold px-3.5 py-2.5 rounded-xl border border-slate-700 transition">
+                        <i class="fa-solid fa-rotate-left"></i> В активные
+                    </button>
+                    {% endif %}
+                </form>
+
+                <form action="/trips/{{ trip.id }}/delete" method="POST" onsubmit="return confirm('Удалить эту поездку навсегда?');">
+                    <button type="submit" class="p-2.5 bg-slate-800 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 rounded-xl border border-slate-700 transition" title="Удалить поездку">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Метрики дороги и готовности -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+            <div class="bg-slate-950/80 rounded-2xl p-3 border border-slate-800">
+                <span class="text-[11px] text-slate-400 block">Расстояние (в 1 сторону)</span>
+                <span class="text-base sm:text-lg font-bold text-emerald-400"><i class="fa-solid fa-road mr-1.5"></i>{{ trip.distance_km }} км</span>
+            </div>
+            <div class="bg-slate-950/80 rounded-2xl p-3 border border-slate-800">
+                <span class="text-[11px] text-slate-400 block">Время за рулем</span>
+                <span class="text-base sm:text-lg font-bold text-sky-400"><i class="fa-solid fa-car mr-1.5"></i>~{{ (trip.duration_minutes // 60) }}ч {{ (trip.duration_minutes % 60) }}м</span>
+            </div>
+            <div class="bg-slate-950/80 rounded-2xl p-3 border border-slate-800">
+                <span class="text-[11px] text-slate-400 block">Собрано вещей</span>
+                <span id="overall-progress-text" class="text-base sm:text-lg font-bold text-amber-400">{{ packed_count }} из {{ total_count }}</span>
+            </div>
+            <div class="bg-slate-950/80 rounded-2xl p-3 border border-slate-800">
+                <span class="text-[11px] text-slate-400 block">Продукты питания</span>
+                <span class="text-base sm:text-lg font-bold text-teal-400">{{ food_bought }} из {{ food_total }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Астрономия: Фаза Луны & Тайминги Солнца (Восход / Закат / Зорьки) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        
+        <!-- Фаза Луны -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <span class="text-xl">{{ moon_info.icon }}</span> Фаза Луны & Лунный клев
+                </h3>
+                <span class="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+                    {{ moon_info.fishing_rating }}
+                </span>
+            </div>
+            
+            <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-400">Текущая фаза: <b class="text-slate-200">{{ moon_info.phase_name }}</b></span>
+                <span class="text-slate-400">Освещенность: <b class="text-slate-200">{{ moon_info.illumination_percent }}%</b></span>
+            </div>
+
+            <div class="bg-slate-950/60 p-3 rounded-2xl border border-slate-800/80 text-xs text-slate-300">
+                <i class="fa-solid fa-moon text-indigo-400 mr-1.5"></i> {{ moon_info.tip }}
+            </div>
+        </div>
+
+        <!-- Солнце & Сумерки -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-sun text-amber-400"></i> Световой день & Зорьки
+                </h3>
+                <span class="text-xs text-slate-400 font-mono">Длина дня: {{ sun_info.day_length }}</span>
+            </div>
+
+            <div class="grid grid-cols-4 gap-2 text-center text-xs">
+                <div class="bg-slate-950/80 p-2 rounded-xl border border-slate-800">
+                    <span class="text-[10px] text-slate-400 block">Утренняя зорька</span>
+                    <span class="font-bold text-sky-400">{{ sun_info.dawn }}</span>
+                </div>
+                <div class="bg-slate-950/80 p-2 rounded-xl border border-slate-800">
+                    <span class="text-[10px] text-slate-400 block">Восход</span>
+                    <span class="font-bold text-amber-400">{{ sun_info.sunrise }}</span>
+                </div>
+                <div class="bg-slate-950/80 p-2 rounded-xl border border-slate-800">
+                    <span class="text-[10px] text-slate-400 block">Закат</span>
+                    <span class="font-bold text-campfire-500">{{ sun_info.sunset }}</span>
+                </div>
+                <div class="bg-slate-950/80 p-2 rounded-xl border border-slate-800">
+                    <span class="text-[10px] text-slate-400 block">Вечерняя зорька</span>
+                    <span class="font-bold text-indigo-400">{{ sun_info.dusk }}</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Интерактивная карта маршрута и секретных точек (Waypoints) -->
+    <div id="map-section" class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-map-location-dot text-emerald-400"></i> Карта местности и секретные точки стоянки
+                </h2>
+                <p class="text-xs text-slate-400">Кликните по карте или используйте форму ниже, чтобы добавить точку (яма, родник, спуск лодки)</p>
+            </div>
+            <span class="text-xs text-emerald-400 font-semibold bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+                Точек на карте: {{ waypoints|length }}
+            </span>
+        </div>
+
+        <!-- Карта Leaflet -->
+        <div id="map-detail" class="w-full h-[380px] sm:h-[450px] rounded-2xl overflow-hidden border border-slate-700 shadow-inner"></div>
+
+        <!-- Форма добавления точки на карту -->
+        <form action="/trips/{{ trip.id }}/waypoints/add" method="POST" class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800/90 grid grid-cols-1 sm:grid-cols-12 gap-3">
+            <div class="sm:col-span-3">
+                <label class="block text-[11px] font-medium text-slate-400 mb-1">Тип точки</label>
+                <select name="point_type" id="wp_type" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                    <option value="fishing">🎣 Рыбная яма / Коряжник</option>
+                    <option value="camp">🏕️ Место палаток / Лагерь</option>
+                    <option value="spring">💧 Родник / Питьевая вода</option>
+                    <option value="boat">🚤 Спуск лодки / Слип</option>
+                    <option value="wood">🌲 Сухостой / Заготовка дров</option>
+                    <option value="obstacle">⚠️ Мель / Препятствие</option>
+                </select>
+            </div>
+            <div class="sm:col-span-3">
+                <label class="block text-[11px] font-medium text-slate-400 mb-1">Название точки *</label>
+                <input type="text" name="name" id="wp_name" required placeholder="Например: Яма 6м у коряги" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block text-[11px] font-medium text-slate-400 mb-1">Широта (Lat)</label>
+                <input type="number" step="0.0001" name="lat" id="wp_lat" value="{{ trip.dest_lat }}" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block text-[11px] font-medium text-slate-400 mb-1">Долгота (Lng)</label>
+                <input type="number" step="0.0001" name="lng" id="wp_lng" value="{{ trip.dest_lng }}" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+            </div>
+            <div class="sm:col-span-2 flex items-end">
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-plus"></i> Сохранить метку
+                </button>
+            </div>
+        </form>
+
+        <!-- Список сохраненных точек -->
+        {% if waypoints %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 pt-2">
+            {% for wp in waypoints %}
+            <div class="bg-slate-950/60 border border-slate-800 p-3 rounded-xl flex items-center justify-between text-xs">
+                <div class="min-w-0 pr-2">
+                    <p class="font-bold text-white truncate">
+                        {% if wp.point_type == 'camp' %}🏕️{% elif wp.point_type == 'fishing' %}🎣{% elif wp.point_type == 'spring' %}💧{% elif wp.point_type == 'boat' %}🚤{% elif wp.point_type == 'wood' %}🌲{% else %}⚠️{% endif %}
+                        {{ wp.name }}
+                    </p>
+                    <span class="text-[10px] text-slate-400 font-mono">{{ wp.lat|round(4) }}, {{ wp.lng|round(4) }}</span>
+                </div>
+                <form action="/waypoints/{{ wp.id }}/delete" method="POST">
+                    <button type="submit" class="text-slate-500 hover:text-rose-400 p-1" title="Удалить точку">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- Погода и барометр клева (Open-Meteo) -->
+    <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-4">
+            <div>
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-cloud-sun text-amber-400"></i> Прогноз погоды и барометр клева на 7 дней
+                </h2>
+                <p class="text-xs text-slate-400">Метеоданные в точке лагеря (давление, ветер, осадки и активность рыбы)</p>
+            </div>
+            <button onclick="loadWeatherForecast({{ trip.dest_lat }}, {{ trip.dest_lng }}, 'weather-container')" class="self-start sm:self-auto text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-rotate text-emerald-400"></i> Обновить прогноз
+            </button>
+        </div>
+
+        <div id="weather-container">
+            <!-- Динамически загружается через JS -->
+        </div>
+    </div>
+
+    <!-- Чек-лист снаряжения (Gear list) -->
+    <div id="gear-section" class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div>
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-clipboard-check text-emerald-400"></i> Чек-лист снаряжения
+                </h2>
+                <p class="text-xs text-slate-400">Отмечайте вещи прямо в браузере или загружайте из своего личного гаража</p>
+            </div>
+
+            <!-- Кнопки управления списком: Гараж, Очистить, Пресет -->
+            <div class="flex flex-wrap items-center gap-2">
+                <a href="/inventory" class="bg-slate-800 hover:bg-teal-950/40 text-teal-300 text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-700 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-warehouse"></i> Мой Гараж
+                </a>
+
+                <form action="/trips/{{ trip.id }}/gear/import-from-inventory" method="POST">
+                    <button type="submit" class="bg-teal-600 hover:bg-teal-500 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-xl transition shadow flex items-center gap-1.5">
+                        <i class="fa-solid fa-box-open"></i> Загрузить из Гаража
+                    </button>
+                </form>
+
+                <form action="/trips/{{ trip.id }}/gear/clear-all" method="POST" onsubmit="return confirm('Очистить список снаряжения этой поездки?');">
+                    <button type="submit" class="bg-slate-800 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-slate-700 transition" title="Очистить список">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Прогресс сборов -->
+        <div class="space-y-1.5">
+            <div class="flex justify-between text-xs font-semibold">
+                <span class="text-slate-300">Готовность снаряжения:</span>
+                <span id="overall-progress-percent" class="text-emerald-400">{{ progress_percent }}%</span>
+            </div>
+            <div class="w-full bg-slate-950 rounded-full h-3 overflow-hidden border border-slate-800">
+                <div id="overall-progress-bar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full transition-all duration-300" style="width: {{ progress_percent }}%;"></div>
+            </div>
+        </div>
+
+        {% if total_count == 0 %}
+        <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-6 text-center space-y-3">
+            <p class="text-sm text-slate-300 font-medium">Список снаряжения пуст. Добавьте свои вещи вручную ниже или нажмите:</p>
+            <div class="flex flex-wrap justify-center gap-3">
+                <form action="/trips/{{ trip.id }}/gear/import-from-inventory" method="POST">
+                    <button type="submit" class="bg-teal-600 hover:bg-teal-500 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-lg">
+                        <i class="fa-solid fa-warehouse mr-1"></i> Загрузить из Моего Гаража
+                    </button>
+                </form>
+                <form action="/trips/{{ trip.id }}/gear/load-presets" method="POST">
+                    <button type="submit" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs px-4 py-2.5 rounded-xl border border-slate-700 transition">
+                        <i class="fa-solid fa-box-open mr-1"></i> Загрузить базовый набор
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Форма добавления нового предмета -->
+        <form action="/trips/{{ trip.id }}/gear/add" method="POST" class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800/90 grid grid-cols-1 sm:grid-cols-12 gap-3">
+            <div class="sm:col-span-3">
+                <label class="block text-[11px] font-medium text-slate-400 mb-1">Категория</label>
+                <select name="category" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                    <option value="camp">🏕️ Лагерь & Палатка</option>
+                    <option value="fishing">🎣 Рыбалка & Снасти</option>
+                    <option value="kitchen">🍳 Походная Кухня</option>
+                    <option value="clothes">👕 Одежда & Экипировка</option>
+                    <option value="firstaid">💊 Аптечка & Безопасность</option>
+                    <option value="other">📦 Прочее</option>
+                </select>
+            </div>
+            <div class="sm:col-span-4">
+                <label class="block text-[11px] font-medium text-slate-400 mb-1">Название вещи *</label>
+                <input type="text" name="name" required placeholder="Например: Сапоги из ЭВА" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block text-[11px] font-medium text-slate-400 mb-1">Кол-во</label>
+                <input type="text" name="quantity" value="1 шт" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+            </div>
+            <div class="sm:col-span-3 flex items-end">
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2 px-3 rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-plus"></i> Добавить вещь
+                </button>
+            </div>
+        </form>
+
+        <!-- Категории снаряжения -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for cat_key, items in grouped_gear.items() %}
+            {% if items %}
+            <div class="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-4 space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid {{ categories_meta[cat_key].icon }} text-{{ categories_meta[cat_key].color }}-400"></i>
+                        {{ categories_meta[cat_key].title }}
+                    </h3>
+                    <span class="text-xs text-slate-400 font-medium">
+                        {{ items|selectattr('is_packed')|list|length }} / {{ items|length }}
+                    </span>
+                </div>
+
+                <div class="space-y-2">
+                    {% for item in items %}
+                    <div id="gear-item-{{ item.id }}" class="flex items-center justify-between gap-3 p-2 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800/60 transition">
+                        <div class="flex items-center gap-3 min-w-0 flex-1">
+                            <input type="checkbox" id="gear-check-{{ item.id }}" {% if item.is_packed %}checked{% endif %} onchange="toggleGear({{ item.id }})" class="w-4 h-4 rounded text-emerald-500 bg-slate-950 border-slate-700 focus:ring-emerald-400 cursor-pointer shrink-0">
+                            
+                            <label for="gear-check-{{ item.id }}" id="gear-text-{{ item.id }}" class="text-xs cursor-pointer select-none truncate {% if item.is_packed %}line-through text-slate-500{% else %}text-slate-200{% endif %}">
+                                {{ item.name }}
+                                {% if item.quantity and item.quantity != '1 шт' %}
+                                <span class="text-[10px] text-slate-400 ml-1">({{ item.quantity }})</span>
+                                {% endif %}
+                                {% if item.note %}
+                                <span class="text-[10px] text-slate-400 block truncate">{{ item.note }}</span>
+                                {% endif %}
+                            </label>
+                        </div>
+
+                        <form action="/gear/{{ item.id }}/delete" method="POST">
+                            <button type="submit" class="text-slate-500 hover:text-rose-400 p-1 transition" title="Удалить">
+                                <i class="fa-solid fa-xmark text-xs"></i>
+                            </button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Калькулятор полевой кухни & Раскладка продуктов -->
+    <div id="food-section" class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div>
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-utensils text-amber-400"></i> Калькулятор полевой кухни & Меню
+                </h2>
+                <p class="text-xs text-slate-400">
+                    Авторасчет на {{ trip.participants_count or 2 }} чел. × {{ trip.duration_days or 3 }} дня ({{ (trip.participants_count or 2) * (trip.duration_days or 3) * 2.5 }} л питьевой воды)
+                </p>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <form action="/trips/{{ trip.id }}/food/generate" method="POST">
+                    <button type="submit" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-lg flex items-center gap-1.5">
+                        <i class="fa-solid fa-calculator"></i> Пересчитать раскладку
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Быстрое добавление своего продукта -->
+        <form action="/trips/{{ trip.id }}/food/add" method="POST" class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800/90 grid grid-cols-1 sm:grid-cols-12 gap-3">
+            <div class="sm:col-span-5">
+                <label class="block text-[11px] font-medium text-slate-400 mb-1">Название продукта</label>
+                <input type="text" name="name" required placeholder="Например: Сыр косичка / лаваш" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+            </div>
+            <div class="sm:col-span-3">
+                <label class="block text-[11px] font-medium text-slate-400 mb-1">Количество</label>
+                <input type="text" name="amount" value="1 упак" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block text-[11px] font-medium text-slate-400 mb-1">Кто берет</label>
+                <input type="text" name="assigned_to" value="Я" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+            </div>
+            <div class="sm:col-span-2 flex items-end">
+                <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold py-2 px-3 rounded-xl text-xs transition">
+                    + Добавить
+                </button>
+            </div>
+        </form>
+
+        <!-- Список продуктов по категориям -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {% for cat_id, cat_title in food_categories.items() %}
+            {% set cat_foods = food_items|selectattr('category', 'equalto', cat_id)|list %}
+            {% if cat_foods %}
+            <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-2xl space-y-2.5">
+                <h3 class="text-xs font-bold text-amber-400 border-b border-slate-800/80 pb-1.5 flex items-center justify-between">
+                    <span>{{ cat_title }}</span>
+                    <span class="text-[10px] text-slate-400">{{ cat_foods|length }} поз.</span>
+                </h3>
+                <div class="space-y-1.5">
+                    {% for f in cat_foods %}
+                    <div class="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-slate-900/60 text-xs">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <input type="checkbox" {% if f.is_bought %}checked{% endif %} onchange="fetch('/food/{{ f.id }}/toggle', {method: 'POST'})" class="w-3.5 h-3.5 rounded text-amber-500 bg-slate-950 border-slate-700 cursor-pointer shrink-0">
+                            <span class="truncate {% if f.is_bought %}line-through text-slate-500{% else %}text-slate-200{% endif %}">{{ f.name }}</span>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="text-[10px] font-mono text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded">{{ f.amount }}</span>
+                            <form action="/food/{{ f.id }}/delete" method="POST">
+                                <button type="submit" class="text-slate-600 hover:text-rose-400 p-0.5"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Калькулятор топлива & Сплит бюджета -->
+    <div id="budget-section" class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div>
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-gas-pump text-sky-400"></i> Калькулятор топлива & Сплит бюджета
+                </h2>
+                <p class="text-xs text-slate-400">Расчет затрат на дорогу с учетом бездорожья (+15%) и деление чеков поровну</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Левая колонка: Настройки авто и расчет топлива -->
+            <div class="lg:col-span-5 space-y-4">
+                <form action="/trips/{{ trip.id }}/logistics/update-params" method="POST" class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800/90 space-y-3 text-xs">
+                    <h3 class="font-bold text-white text-xs border-b border-slate-800 pb-2">Параметры выезда</h3>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-slate-400 mb-1">Участников (чел)</label>
+                            <input type="number" name="participants_count" value="{{ trip.participants_count or 2 }}" min="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 mb-1">Дней выезда</label>
+                            <input type="number" name="duration_days" value="{{ trip.duration_days or 3 }}" min="1" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-slate-400 mb-1">Расход (л/100км)</label>
+                            <input type="number" step="0.1" name="fuel_consumption" value="{{ trip.fuel_consumption or 9.5 }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 mb-1">Цена бензина (₸/л)</label>
+                            <input type="number" step="1" name="fuel_price" value="{{ trip.fuel_price or 230.0 }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold p-2 rounded-xl border border-slate-700 transition">
+                        Обновить расчет
+                    </button>
+                </form>
+
+                <!-- Сводка затрат -->
+                <div class="bg-gradient-to-tr from-slate-950 via-slate-900 to-sky-950/30 border border-sky-800/40 rounded-2xl p-4 space-y-3 text-xs">
+                    <div class="flex justify-between text-slate-300">
+                        <span>Пробег туда-обратно (+грунт):</span>
+                        <span class="font-bold text-white">{{ roundtrip_km }} км</span>
+                    </div>
+                    <div class="flex justify-between text-slate-300">
+                        <span>Расход топлива:</span>
+                        <span class="font-bold text-sky-400">~{{ fuel_liters }} л ({{ fuel_cost }} ₸)</span>
+                    </div>
+                    <div class="flex justify-between text-slate-300">
+                        <span>Прочие покупки (продукты/снасти):</span>
+                        <span class="font-bold text-amber-400">{{ other_expenses_total }} ₸</span>
+                    </div>
+                    <div class="pt-2 border-t border-slate-800 flex justify-between items-baseline">
+                        <span class="font-bold text-white">Итого на выезд:</span>
+                        <span class="text-base font-extrabold text-emerald-400">{{ total_budget }} ₸</span>
+                    </div>
+                    <div class="bg-emerald-950/30 border border-emerald-500/20 p-2.5 rounded-xl text-center">
+                        <span class="text-[11px] text-slate-300 block">С каждого участника:</span>
+                        <span class="text-base font-extrabold text-emerald-400">{{ cost_per_person }} ₸ / чел.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая колонка: Список чеков и расходов -->
+            <div class="lg:col-span-7 space-y-3">
+                <!-- Форма добавления чека -->
+                <form action="/trips/{{ trip.id }}/expenses/add" method="POST" class="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800/90 grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs">
+                    <div class="sm:col-span-5">
+                        <input type="text" name="title" required placeholder="Например: Закупка мяса и угля" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
+                    </div>
+                    <div class="sm:col-span-3">
+                        <input type="number" step="50" name="amount" required placeholder="Сумма ₸" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <input type="text" name="paid_by" value="Я" placeholder="Кто оплатил" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <button type="submit" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold p-2 rounded-xl transition">
+                            + Чек
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Список добавленных трат -->
+                <div class="space-y-2">
+                    <div class="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 flex items-center justify-between text-xs">
+                        <div>
+                            <p class="font-semibold text-white">⛽ Топливо на дорогу (расчетное)</p>
+                            <span class="text-[10px] text-slate-400">Автоматический расчет по пробегу</span>
+                        </div>
+                        <span class="font-bold text-sky-400">{{ fuel_cost }} ₸</span>
+                    </div>
+
+                    {% for exp in expenses %}
+                    <div class="p-2.5 rounded-xl bg-slate-950/60 border border-slate-800 flex items-center justify-between text-xs">
+                        <div>
+                            <p class="font-semibold text-white">{{ exp.title }}</p>
+                            <span class="text-[10px] text-slate-400">Оплатил: {{ exp.paid_by }}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="font-bold text-amber-400">{{ exp.amount|round }} ₸</span>
+                            <form action="/expenses/{{ exp.id }}/delete" method="POST">
+                                <button type="submit" class="text-slate-500 hover:text-rose-400"><i class="fa-solid fa-trash-can"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Журнал трофеев и улова экспедиции -->
+    <div id="trophies-section" class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div>
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-trophy text-amber-400"></i> Журнал трофеев и улова
+                </h2>
+                <p class="text-xs text-slate-400">Фиксируйте вес, виды пойманной рыбы, рабочие приманки и фото</p>
+            </div>
+            <span class="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+                Добыто в этой поездке: {{ trip.catch_weight_kg or 0 }} кг
+            </span>
+        </div>
+
+        <!-- Форма добавления нового трофея -->
+        <form action="/trips/{{ trip.id }}/trophies/add" method="POST" class="bg-slate-950/80 p-4 rounded-2xl border border-slate-800/90 grid grid-cols-1 sm:grid-cols-12 gap-3 text-xs">
+            <div class="sm:col-span-3">
+                <label class="block text-[11px] font-medium text-slate-400 mb-1">Вид рыбы *</label>
+                <input type="text" name="species" required placeholder="Щука / Судак / Окунь" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block text-[11px] font-medium text-slate-400 mb-1">Вес (кг) *</label>
+                <input type="number" step="0.05" name="weight_kg" required placeholder="2.5" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block text-[11px] font-medium text-slate-400 mb-1">Длина (см)</label>
+                <input type="number" step="1" name="length_cm" placeholder="65" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
+            </div>
+            <div class="sm:col-span-3">
+                <label class="block text-[11px] font-medium text-slate-400 mb-1">Приманка / снасть</label>
+                <input type="text" name="lure_or_bait" placeholder="Джиг 14г, виброхвост" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
+            </div>
+            <div class="sm:col-span-2">
+                <label class="block text-[11px] font-medium text-slate-400 mb-1">Глубина (м)</label>
+                <input type="number" step="0.5" name="depth_m" placeholder="4.5" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
+            </div>
+            
+            <div class="sm:col-span-4">
+                <label class="block text-[11px] font-medium text-slate-400 mb-1">Время поимки</label>
+                <input type="text" name="time_of_catch" placeholder="Утренняя зорька, 06:15" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
+            </div>
+            <div class="sm:col-span-5">
+                <label class="block text-[11px] font-medium text-slate-400 mb-1">Ссылка на фото (URL)</label>
+                <input type="text" name="image_url" placeholder="https://... или оставьте пустым" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-white outline-none">
+            </div>
+            <div class="sm:col-span-3 flex items-end">
+                <button type="submit" class="w-full bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold p-2 rounded-xl transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-plus"></i> Записать трофей
+                </button>
+            </div>
+        </form>
+
+        <!-- Список трофеев этой поездки -->
+        {% if trophies %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {% for t in trophies %}
+            <div class="bg-slate-950/60 border border-slate-800 rounded-2xl p-4 space-y-2 text-xs">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h4 class="font-bold text-white text-sm"><i class="fa-solid fa-fish text-sky-400 mr-1"></i>{{ t.species }}</h4>
+                        <span class="text-[11px] font-bold text-amber-400">{{ t.weight_kg }} кг {% if t.length_cm %}({{ t.length_cm }} см){% endif %}</span>
+                    </div>
+                    <form action="/trophies/{{ t.id }}/delete" method="POST">
+                        <button type="submit" class="text-slate-500 hover:text-rose-400"><i class="fa-solid fa-trash-can"></i></button>
+                    </form>
+                </div>
+                {% if t.lure_or_bait %}
+                <p class="text-slate-400"><span class="text-slate-500">Приманка:</span> {{ t.lure_or_bait }}</p>
+                {% endif %}
+                {% if t.time_of_catch %}
+                <p class="text-slate-400"><span class="text-slate-500">Время:</span> {{ t.time_of_catch }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Модальное окно SOS Координат -->
+<div id="sos-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-rose-800/60 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="text-base font-bold text-rose-400 flex items-center gap-2">
+                <i class="fa-solid fa-triangle-exclamation"></i> Экстренные координаты лагеря
+            </h3>
+            <button onclick="closeSosModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+
+        <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2 text-xs">
+            <p class="text-slate-300 font-semibold">Текст для отправки в экстренную службу / родным:</p>
+            <div id="sos-text-content" class="p-3 bg-slate-900 rounded-xl font-mono text-emerald-400 select-all">
+SOS! Мы в лагере: {{ trip.dest_name }}. Координаты GPS: {{ trip.dest_lat }}, {{ trip.dest_lng }}. Требуется помощь.
+            </div>
+        </div>
+
+        <div class="flex gap-2">
+            <button onclick="copySosText()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+                <i class="fa-regular fa-copy"></i> Скопировать текст
+            </button>
+            <a href="tel:112" class="bg-rose-600 hover:bg-rose-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition flex items-center gap-1.5">
+                <i class="fa-solid fa-phone"></i> 112
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        initDetailMap();
+        loadWeatherForecast({{ trip.dest_lat }}, {{ trip.dest_lng }}, 'weather-container');
+    });
+
+    let detailMap;
+
+    function initDetailMap() {
+        const startLat = {{ trip.origin_lat or 55.7558 }};
+        const startLng = {{ trip.origin_lng or 37.6173 }};
+        const destLat = {{ trip.dest_lat }};
+        const destLng = {{ trip.dest_lng }};
+
+        detailMap = L.map('map-detail').setView([destLat, destLng], 10);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(detailMap);
+
+        // Маркер старта
+        L.marker([startLat, startLng]).addTo(detailMap).bindPopup("🏠 <b>Старт</b><br>{{ trip.origin_name }}");
+        
+        // Маркер основного лагеря
+        L.marker([destLat, destLng]).addTo(detailMap).bindPopup("🏕️ <b>Основной лагерь</b><br>{{ trip.dest_name }}");
+
+        // Загрузка трека маршрута OSRM
+        fetch(`/api/route?start_lat=${startLat}&start_lng=${startLng}&end_lat=${destLat}&end_lng=${destLng}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.geometry) {
+                    const route = L.geoJSON(data.geometry, {
+                        style: { color: '#10b981', weight: 5, opacity: 0.85 }
+                    }).addTo(detailMap);
+                    detailMap.fitBounds(route.getBounds(), { padding: [40, 40] });
+                }
+            })
+            .catch(err => console.error("Error route:", err));
+
+        // Загрузка сохраненных вейпоинтов на карту
+        fetch(`/api/trips/{{ trip.id }}/waypoints`)
+            .then(res => res.json())
+            .then(points => {
+                points.forEach(pt => {
+                    let iconEmoji = "📍";
+                    if (pt.type === 'camp') iconEmoji = "🏕️";
+                    if (pt.type === 'fishing') iconEmoji = "🎣";
+                    if (pt.type === 'spring') iconEmoji = "💧";
+                    if (pt.type === 'boat') iconEmoji = "🚤";
+                    if (pt.type === 'wood') iconEmoji = "🌲";
+                    if (pt.type === 'obstacle') iconEmoji = "⚠️";
+
+                    const customIcon = L.divIcon({
+                        className: 'custom-wp-icon',
+                        html: `<div class="bg-slate-900/90 text-white border border-slate-700 rounded-full w-8 h-8 flex items-center justify-center text-sm shadow-xl">${iconEmoji}</div>`,
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 16]
+                    });
+
+                    L.marker([pt.lat, pt.lng], { icon: customIcon })
+                        .addTo(detailMap)
+                        .bindPopup(`<b>${iconEmoji} ${pt.name}</b><br><span class="text-xs text-slate-400">${pt.lat.toFixed(4)}, ${pt.lng.toFixed(4)}</span>`);
+                });
+            });
+
+        // Клик по карте заполняет поля формы добавления точки
+        detailMap.on('click', function(e) {
+            document.getElementById('wp_lat').value = e.latlng.lat.toFixed(5);
+            document.getElementById('wp_lng').value = e.latlng.lng.toFixed(5);
+            document.getElementById('wp_name').focus();
+        });
+    }
+
+    function openSosModal() {
+        document.getElementById('sos-modal').classList.remove('hidden');
+    }
+
+    function closeSosModal() {
+        document.getElementById('sos-modal').classList.add('hidden');
+    }
+
+    function copySosText() {
+        const text = document.getElementById('sos-text-content').innerText.trim();
+        navigator.clipboard.writeText(text).then(() => {
+            alert('SOS-сообщение с координатами скопировано!');
+        });
+    }
+</script>
+{% endblock %}

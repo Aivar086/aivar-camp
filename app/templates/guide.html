@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Справочник & Первая помощь в полевых условиях — Camp & Fish Planner Pro{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Заголовок -->
+    <div class="border-b border-slate-800 pb-4">
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center text-base">
+                <i class="fa-solid fa-shield-heart"></i>
+            </span>
+            Безопасность & Карманный справочник рыболова
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Офлайн-инструкции по первой помощи при ЧП на природе и правила вылова рыбы</p>
+    </div>
+
+    <!-- Быстрая плашка экстренных служб -->
+    <div class="bg-gradient-to-r from-rose-950/40 via-slate-900 to-slate-900 border border-rose-800/40 rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="space-y-1 text-center sm:text-left">
+            <h2 class="text-lg font-bold text-white flex items-center justify-center sm:justify-start gap-2">
+                <i class="fa-solid fa-truck-medical text-rose-400"></i> Экстренные телефоны (работают даже без SIM-карты)
+            </h2>
+            <p class="text-xs text-slate-300">В случае угрозы жизни немедленно свяжитесь со службой спасения.</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="tel:112" class="bg-rose-600 hover:bg-rose-500 text-white font-extrabold px-6 py-3 rounded-2xl shadow-lg shadow-rose-950/50 text-base flex items-center gap-2 transition active:scale-95">
+                <i class="fa-solid fa-phone-volume"></i> 112 (МЧС / Скорая)
+            </a>
+        </div>
+    </div>
+
+    <!-- Секция: Первая помощь при походных травмах -->
+    <div class="space-y-4">
+        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-kit-medical text-rose-400"></i> Инструкции первой помощи при ЧП
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {% for tip in first_aid %}
+            <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-base font-bold text-white flex items-center gap-2.5 border-b border-slate-800 pb-2.5">
+                        <i class="fa-solid {{ tip.icon }} text-{{ tip.color }}-400 text-lg"></i>
+                        {{ tip.title }}
+                    </h3>
+                    <ul class="space-y-2 text-xs text-slate-300 mt-3">
+                        {% for step in tip.steps %}
+                        <li class="leading-relaxed bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60">{{ step }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Секция: Минимальные размеры и нормы вылова рыбы -->
+    <div class="space-y-4 pt-4 border-t border-slate-800">
+        <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-scale-balanced text-emerald-400"></i> Минимальные размеры и нормы вылова рыбы
+            </h2>
+            <span class="text-xs text-slate-400">Базовые нормативы РФ</span>
+        </div>
+
+        <div class="overflow-x-auto rounded-3xl border border-slate-800 bg-slate-900/90 shadow-xl">
+            <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                    <tr>
+                        <th class="py-3 px-4">Вид рыбы</th>
+                        <th class="py-3 px-4">Мин. размер</th>
+                        <th class="py-3 px-4">Суточная норма</th>
+                        <th class="py-3 px-4">Особенности и правила</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/80">
+                    {% for fish in fish_rules %}
+                    <tr class="hover:bg-slate-800/50 transition">
+                        <td class="py-3 px-4 font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-fish text-sky-400"></i> {{ fish.name }}
+                        </td>
+                        <td class="py-3 px-4 font-semibold text-emerald-400">{{ fish.min_size }}</td>
+                        <td class="py-3 px-4 font-medium text-amber-400">{{ fish.season_limit }}</td>
+                        <td class="py-3 px-4 text-slate-400">{{ fish.notes }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

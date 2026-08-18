@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Дневник улова & История поездок — Camp & Fish Planner{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
+                <span class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center text-base">
+                    <i class="fa-solid fa-book-bookmark"></i>
+                </span>
+                Дневник улова & Архив поездок
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Все ваши прошлые выезды, отчеты о трофеях и заметки о стоянках</p>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 px-4 py-2 rounded-2xl flex items-center gap-3">
+            <i class="fa-solid fa-trophy text-amber-400 text-xl"></i>
+            <div>
+                <span class="text-[10px] text-slate-400 block font-medium">Всего добыто рыбы</span>
+                <span class="text-sm font-bold text-white">{{ total_catch }} кг</span>
+            </div>
+        </div>
+    </div>
+
+    {% if completed_trips %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {% for trip in completed_trips %}
+            <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4 flex flex-col justify-between">
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                            <i class="fa-solid fa-check"></i> Завершен
+                        </span>
+                        {% if trip.start_date %}
+                        <span class="text-xs text-slate-400 font-medium">
+                            <i class="fa-regular fa-calendar mr-1"></i>{{ trip.start_date }}
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <h3 class="text-lg font-bold text-white">
+                            <a href="/trips/{{ trip.id }}" class="hover:text-sky-400 transition">{{ trip.title }}</a>
+                        </h3>
+                        <p class="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
+                            <i class="fa-solid fa-location-dot text-rose-400"></i> {{ trip.dest_name }} ({{ trip.distance_km }} км)
+                        </p>
+                    </div>
+
+                    <!-- Улов -->
+                    {% if trip.catch_species or trip.catch_weight_kg > 0 %}
+                    <div class="bg-emerald-950/30 border border-emerald-800/40 rounded-2xl p-3 space-y-1">
+                        <div class="flex items-center justify-between text-xs font-bold text-emerald-400">
+                            <span><i class="fa-solid fa-fish mr-1"></i> {{ trip.catch_species or 'Рыба' }}</span>
+                            <span>{{ trip.catch_weight_kg }} кг</span>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if trip.catch_notes %}
+                    <div class="text-xs text-slate-300 bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+                        <p class="font-semibold text-slate-400 text-[10px] uppercase tracking-wider mb-1">Заметки о месте и клеве:</p>
+                        <p>{{ trip.catch_notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
+                    <a href="/trips/{{ trip.id }}" class="text-xs text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1">
+                        Открыть полную карточку <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="bg-slate-900/50 border border-slate-800 border-dashed rounded-3xl p-12 text-center space-y-3">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-slate-800 flex items-center justify-center text-sky-400 text-3xl">
+                <i class="fa-solid fa-fish"></i>
+            </div>
+            <h3 class="text-base font-semibold text-white">В архиве пока нет завершенных выездов</h3>
+            <p class="text-xs text-slate-400 max-w-sm mx-auto">
+                Когда вы вернетесь с рыбалки, нажмите «Завершить поездку» в карточке выезда и запишите свой улов!
+            </p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}
